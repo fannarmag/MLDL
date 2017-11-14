@@ -7,6 +7,7 @@ import org.apache.spark.ml.Pipeline
 import org.apache.spark.SparkConf
 import org.apache.spark.SparkContext
 import org.apache.spark.sql.SQLContext
+import org.apache.spark.sql.functions._
 
 object Main {
   case class Song(year: Double, f1: Double, f2: Double, f3: Double)
@@ -39,9 +40,53 @@ object Main {
 
     //Step4: convert your rdd into a dataframe
     val songsDf = songsRdd.toDF
-    songsRdd.take(5).foreach(println)
+    songsDf.show()
     
-    // TODO : Answer questions..
+    // Register the DataFrame as a SQL temporary view
+    songsDf.createOrReplaceTempView("songs")
+    
+    
+    // Answer both by using higher order functions and Spark SQL 
+		// 1. How many songs there are in the DataFrame?
+		val numberOfSongs1Rdd = songsRdd.count
+		println("numberOfSongs1RDD " + numberOfSongs1Rdd)
+		val numberOfSongs1Df = sqlContext.sql("SELECT COUNT(*) FROM songs").collect()(0).getLong(0)
+		println("numberOfSongs1Df " + numberOfSongs1Df)
+		
+    
+    //2. How many songs were released between the years 1998 and 2000?
+		val numberOfSongs2RDD = songsRdd.map(song => song.year).filter(year => year > 1997 && year < 2001).count()
+		println("numberOfSongs2RDD " + numberOfSongs2RDD)
+		val numberOfSongs2Df = songsDf.select("year").filter($"year" > 1997 && $"year" < 2001).count()
+		println("numberOfSongs2Df " + numberOfSongs2Df)
+		
+		//3. What is the min, max and mean value of the year column?
+		val minYearRDD = songsRdd.map(song => song.year).min()
+		println("minYearRDD " + minYearRDD)
+		val maxYearRDD = songsRdd.map(song => song.year).max()
+		println("maxYearRDD " + maxYearRDD)
+		val meanYearRDD = songsRdd.map(song => song.year).mean()
+		println("meanYearRDD " + meanYearRDD)
+		
+		val minYearDf = songsDf.select(min("year")).collect()(0).getDouble(0)
+		println("minYearDf " + minYearDf)
+		val maxYearDf = songsDf.select(max("year")).collect()(0).getDouble(0)
+		println("maxYearDf " + maxYearDf)
+		val meanYearDf = songsDf.select(mean("year")).collect()(0).getDouble(0)
+		println("meanYearDf " + meanYearDf)
+		
+		//4. Show the number of songs per year between the years 2000 and 2010?
+		println("numberOfSongsPerYearRdd:")
+		val numberOfSongsPerYearRdd = songsRdd.map(song => song.year)
+		                              .filter(year => year > 1999 && year < 2011)
+		                              .countByValue()
+		                              .foreach({case(year, count) => println(year, count)})
+		println("numberOfSongsPerYearDf")
+		val numberOfSongsPerYearDf = songsDf
+		                             .filter($"year" > 1999 && $"year" < 2011)
+		                             .groupBy("year")
+		                             .count()
+		                             .show()
   }
  
 }
