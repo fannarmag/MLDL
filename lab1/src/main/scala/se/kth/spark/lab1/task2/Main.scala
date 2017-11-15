@@ -6,7 +6,7 @@ import org.apache.spark.ml.linalg.Vector
 import org.apache.spark.SparkConf
 import org.apache.spark.SparkContext
 import org.apache.spark.sql.{Column, Row, SQLContext}
-import org.apache.spark.ml.feature.{RegexTokenizer, Tokenizer}
+import org.apache.spark.ml.feature.{RegexTokenizer, Tokenizer, VectorSlicer}
 import org.apache.spark.ml.linalg.{DenseVector, Vectors}
 import org.apache.spark.sql.functions.{min, udf}
 
@@ -18,8 +18,7 @@ object Main {
 
     val filePath = "src/main/resources/millionsong.txt"
     val rawDF = sqlContext.read.text(filePath)
-    rawDF.show(2)
-
+    rawDF.show(10)
 
     //Step1: tokenize each row
     val regexTokenizer = new RegexTokenizer()
@@ -28,48 +27,55 @@ object Main {
       .setPattern(",")
 
     //Step2: transform with tokenizer and show 5 rows
-    val regexTokenizedDF = regexTokenizer.transform(rawDF)
-    regexTokenizedDF.show(2)
+    val processedDF = regexTokenizer.transform(rawDF)
+    processedDF.show(10)
 
     //Step3: transform array of tokens to a vector of tokens (use our ArrayToVector)
     val arr2Vect = new Array2Vector()
       .setInputCol("tokenArray")
       .setOutputCol("tokenVector")
-      .transform(regexTokenizedDF)
-    arr2Vect.show(2)
+
+    val processedDF2 = arr2Vect.transform(processedDF)
+    processedDF2.show(10)
 
     //Step4: extract the label(year) into a new column
-    val getYear = udf { (token: DenseVector) =>
-        Vectors.dense(token(0)) // keep the year in vector - convert it to Double in Step5
-    }
-    val lSlicer = arr2Vect.withColumn("year", getYear(arr2Vect.col("tokenVector")))
-    lSlicer.show(10)
+    val lSlicer = new VectorSlicer()
+      .setInputCol("tokenVector")
+      .setOutputCol("year")
+      .setIndices(Array(0))
+
+    val processedDF3 = lSlicer.transform(processedDF2)
+    processedDF3.show(10)
 
     //Step5: convert type of the label from vector to double (use our Vector2Double)
     val v2d = new Vector2DoubleUDF((vect: Vector) => { vect(0) })
       .setInputCol("year")
       .setOutputCol("yearDouble")
-      .transform(lSlicer)
-    v2d.show(2)
+
+    val processedDF4 = v2d.transform(processedDF3)
+    processedDF4.show(10)
 
     //Step6: shift all labels by the value of minimum label such that the value of the smallest becomes 0 (use our DoubleUDF)
-    val minYearValue = v2d.select(min("yearDouble")).collect()(0).getDouble(0)
+    // TODO Is it OK to find the min year here, outside of the lshifter stage? Yes? Pipeline creates a model, model is run on prediction data.
+    val minYearValue = processedDF4.select(min("yearDouble")).collect()(0).getDouble(0)
     val lShifter = new DoubleUDF((y: Double) => { y - minYearValue })
       .setInputCol("yearDouble")
       .setOutputCol("yearShifted")
-      .transform(v2d)
-    //lShifter.show(2)
-    //val minYearValueTest = lShifter.select(min("yearShifted")).collect()(0).getDouble(0)
+
+    val processedDF5 = lShifter.transform(processedDF4)
+    processedDF5.show(10)
 
     //Step7: extract just the 3 first features in a new vector column
-    val getFirst3Features = udf { (tokenVect: DenseVector) =>
-      Vectors.dense(tokenVect(1), tokenVect(2), tokenVect(3))
-    }
-    val fSlicer = lShifter.withColumn("f3f", getFirst3Features(lShifter.col("tokenVector")))
-    //fSlicer.show(5)
+    val fSlicer = new VectorSlicer()
+      .setInputCol("tokenVector")
+      .setOutputCol("f3f")
+      .setIndices(Array(1, 2, 3))
+
+    val processedDF6 = fSlicer.transform(processedDF5)
+    processedDF6.show(10)
 
     //Step8: put everything together in a pipeline
-    val pipeline = new Pipeline().setStages(???)
+    val pipeline = new Pipeline().setStages(Array(regexTokenizer, arr2Vect, lSlicer, v2d, lShifter, fSlicer))
 
     //Step9: generate model by fitting the rawDf into the pipeline
     val pipelineModel = pipeline.fit(rawDF)
