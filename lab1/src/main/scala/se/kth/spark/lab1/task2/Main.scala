@@ -19,17 +19,18 @@ object Main {
 
     val filePath = "src/main/resources/millionsong.txt"
     val rawDF = sqlContext.read.text(filePath)
+    rawDF.show(5)
 
 
     //Step1: tokenize each row
     val regexTokenizer = new RegexTokenizer()
       .setInputCol("value")
-      .setOutputCol("song")
-      .setPattern("???")
+      .setOutputCol("token")
+      .setPattern(",")
 
     //Step2: transform with tokenizer and show 5 rows
     val regexTokenizedDF = regexTokenizer.transform(rawDF)
-    regexTokenizedDF.take(5).foreach(println)
+    regexTokenizedDF.show(5)
 
     //Step3: transform array of tokens to a vector of tokens (use our ArrayToVector)
     val arr2Vect = new Array2Vector()
