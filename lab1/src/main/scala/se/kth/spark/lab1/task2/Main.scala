@@ -1,13 +1,13 @@
 package se.kth.spark.lab1.task2
 
 import se.kth.spark.lab1._
-
 import org.apache.spark.ml.Pipeline
 import org.apache.spark.SparkConf
 import org.apache.spark.SparkContext
-import org.apache.spark.sql.SQLContext
+import org.apache.spark.sql.{Column, Row, SQLContext}
 import org.apache.spark.ml.feature.{RegexTokenizer, Tokenizer}
-import org.apache.spark.sql.functions._
+import org.apache.spark.ml.linalg.{DenseVector, Vectors}
+import org.apache.spark.sql.functions.udf
 
 object Main {
   def main(args: Array[String]) {
@@ -15,29 +15,34 @@ object Main {
     val sc = new SparkContext(conf)
     val sqlContext = new SQLContext(sc)
 
-    import sqlContext._
-
     val filePath = "src/main/resources/millionsong.txt"
     val rawDF = sqlContext.read.text(filePath)
-    rawDF.show(5)
+    rawDF.show(2)
 
 
     //Step1: tokenize each row
     val regexTokenizer = new RegexTokenizer()
       .setInputCol("value")
-      .setOutputCol("token")
+      .setOutputCol("tokenArray")
       .setPattern(",")
 
     //Step2: transform with tokenizer and show 5 rows
     val regexTokenizedDF = regexTokenizer.transform(rawDF)
-    regexTokenizedDF.show(5)
+    regexTokenizedDF.show(2)
 
     //Step3: transform array of tokens to a vector of tokens (use our ArrayToVector)
     val arr2Vect = new Array2Vector()
-    ???
+      .setInputCol("tokenArray")
+      .setOutputCol("tokenVector")
+      .transform(regexTokenizedDF)
+    arr2Vect.show(2)
 
     //Step4: extract the label(year) into a new column
-    val lSlicer = ???
+    val getYear = udf { (token: DenseVector) =>
+        Vectors.dense(token(0)) // keep the year in vector - convert it to Double in Step5
+    }
+    val lSlicer = arr2Vect.withColumn("year", getYear(arr2Vect.col("tokenVector")))
+    lSlicer.show(10)
 
     //Step5: convert type of the label from vector to double (use our Vector2Double)
     val v2d = new Vector2DoubleUDF(???)
