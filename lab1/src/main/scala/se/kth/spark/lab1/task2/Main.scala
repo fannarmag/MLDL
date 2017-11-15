@@ -2,12 +2,13 @@ package se.kth.spark.lab1.task2
 
 import se.kth.spark.lab1._
 import org.apache.spark.ml.Pipeline
+import org.apache.spark.ml.linalg.Vector
 import org.apache.spark.SparkConf
 import org.apache.spark.SparkContext
 import org.apache.spark.sql.{Column, Row, SQLContext}
 import org.apache.spark.ml.feature.{RegexTokenizer, Tokenizer}
 import org.apache.spark.ml.linalg.{DenseVector, Vectors}
-import org.apache.spark.sql.functions.udf
+import org.apache.spark.sql.functions.{min, udf}
 
 object Main {
   def main(args: Array[String]) {
@@ -45,11 +46,21 @@ object Main {
     lSlicer.show(10)
 
     //Step5: convert type of the label from vector to double (use our Vector2Double)
-    val v2d = new Vector2DoubleUDF(???)
-    ???
-    //Step6: shift all labels by the value of minimum label such that the value of the smallest becomes 0 (use our DoubleUDF) 
-    val lShifter = new DoubleUDF(???)
-    ???
+    val v2d = new Vector2DoubleUDF((vect: Vector) => { vect(0) })
+      .setInputCol("year")
+      .setOutputCol("yearDouble")
+      .transform(lSlicer)
+    v2d.show(2)
+
+    //Step6: shift all labels by the value of minimum label such that the value of the smallest becomes 0 (use our DoubleUDF)
+    val minYearValue = v2d.select(min("yearDouble")).collect()(0).getDouble(0)
+    val lShifter = new DoubleUDF((y: Double) => { y - minYearValue })
+      .setInputCol("yearDouble")
+      .setOutputCol("yearShifted")
+      .transform(v2d)
+    //lShifter.show(2)
+    //val minYearValueTest = lShifter.select(min("yearShifted")).collect()(0).getDouble(0)
+
     //Step7: extract just the 3 first features in a new vector column
     val fSlicer = ???
 
