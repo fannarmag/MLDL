@@ -62,7 +62,11 @@ object Main {
     //val minYearValueTest = lShifter.select(min("yearShifted")).collect()(0).getDouble(0)
 
     //Step7: extract just the 3 first features in a new vector column
-    val fSlicer = ???
+    val getFirst3Features = udf { (tokenVect: DenseVector) =>
+      Vectors.dense(tokenVect(1), tokenVect(2), tokenVect(3))
+    }
+    val fSlicer = lShifter.withColumn("f3f", getFirst3Features(lShifter.col("tokenVector")))
+    //fSlicer.show(5)
 
     //Step8: put everything together in a pipeline
     val pipeline = new Pipeline().setStages(???)
