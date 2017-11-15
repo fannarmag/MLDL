@@ -60,7 +60,7 @@ object Main {
     val minYearValue = processedDF4.select(min("yearDouble")).collect()(0).getDouble(0)
     val lShifter = new DoubleUDF((y: Double) => { y - minYearValue })
       .setInputCol("yearDouble")
-      .setOutputCol("yearShifted")
+      .setOutputCol("label(yearShifted)")
 
     val processedDF5 = lShifter.transform(processedDF4)
     processedDF5.show(10)
@@ -80,10 +80,12 @@ object Main {
     //Step9: generate model by fitting the rawDf into the pipeline
     val pipelineModel = pipeline.fit(rawDF)
 
-    //Step10: transform data with the model - do predictions
-    ???
+    //Step10: transform data with the model
+    val modelProcessedDF = pipelineModel.transform(rawDF)
+    modelProcessedDF.show(10)
 
     //Step11: drop all columns from the dataframe other than label and features
-    ???
+    val modelProcessedDF2 = modelProcessedDF.drop("value").drop("tokenArray").drop("tokenVector").drop("year").drop("yearDouble")
+    modelProcessedDF2.show(10)
   }
 }
