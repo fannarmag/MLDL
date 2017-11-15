@@ -1,8 +1,0 @@
-/bin/
-.cache-main
-.classpath
-.project
-.settings/
-project/
-target/
-spark.log
