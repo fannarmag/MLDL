@@ -2,11 +2,12 @@ package se.kth.spark.lab1.task2
 
 import se.kth.spark.lab1._
 
-import org.apache.spark.ml.feature.RegexTokenizer
 import org.apache.spark.ml.Pipeline
 import org.apache.spark.SparkConf
 import org.apache.spark.SparkContext
 import org.apache.spark.sql.SQLContext
+import org.apache.spark.ml.feature.{RegexTokenizer, Tokenizer}
+import org.apache.spark.sql.functions._
 
 object Main {
   def main(args: Array[String]) {
@@ -14,20 +15,21 @@ object Main {
     val sc = new SparkContext(conf)
     val sqlContext = new SQLContext(sc)
 
-    import sqlContext.implicits._
     import sqlContext._
 
     val filePath = "src/main/resources/millionsong.txt"
-    val rawDF = ???
+    val rawDF = sqlContext.read.text(filePath)
+
 
     //Step1: tokenize each row
     val regexTokenizer = new RegexTokenizer()
-      .setInputCol(???)
-      .setOutputCol(???)
-      .setPattern(???)
+      .setInputCol("value")
+      .setOutputCol("song")
+      .setPattern("???")
 
     //Step2: transform with tokenizer and show 5 rows
-    ???
+    val regexTokenizedDF = regexTokenizer.transform(rawDF)
+    regexTokenizedDF.take(5).foreach(println)
 
     //Step3: transform array of tokens to a vector of tokens (use our ArrayToVector)
     val arr2Vect = new Array2Vector()
