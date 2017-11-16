@@ -13,7 +13,8 @@ object VectorHelper {
   }
 
   def dot(v: Vector, s: Double): Vector = {
-    ???
+    val a = v.toArray
+    Vectors.dense(a.map(x => x*s))
   }
 
   def sum(v1: Vector, v2: Vector): Vector = {
