@@ -28,7 +28,8 @@ object Helper {
   }
 
   def predict(weights: Vector, data: RDD[Instance]): RDD[(Double, Double)] = {
-    ???
+    val predictions = data.map((x) => (x.label, predictOne(weights, x.features)))
+    predictions
   }
 }
 
