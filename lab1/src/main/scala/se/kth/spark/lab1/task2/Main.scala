@@ -16,7 +16,7 @@ object Main {
     val sc = new SparkContext(conf)
     val sqlContext = new SQLContext(sc)
 
-    val filePath = "src/main/resources/millionsong.txt"
+    val filePath = "src/main/resources/millionsong-500k-noquotes.txt"
     val rawDF = sqlContext.read.text(filePath)
     rawDF.show(10)
 
