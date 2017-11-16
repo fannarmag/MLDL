@@ -22,8 +22,10 @@ object Main {
     // this grid will have 2 x 2 = 4 parameter settings for CrossValidator to choose from.
     val lrStage: LinearRegression = task3PipelineStages(task3PipelineStages.length - 1).asInstanceOf[LinearRegression]
     val paramGrid = new ParamGridBuilder()
-      .addGrid(lrStage.maxIter, Array(10, 50))
-      .addGrid(lrStage.regParam, Array(0.1, 0.9))
+      // Three values above and three values below the base value
+      // Let's take the median of the values given in the assignment as the base values, 30 and 0.5
+      .addGrid(lrStage.maxIter, Array(10, 17, 23, 30, 37, 43, 50))
+      .addGrid(lrStage.regParam, Array(0.1, 0.25, 0.38, 0.5, 0.65, 0.8, 0.9))
       .build()
 
     val evaluator = new RegressionEvaluator()
@@ -34,6 +36,7 @@ object Main {
       .setEstimatorParamMaps(paramGrid)
 
     // Run cross-validation, and choose the best set of parameters.
+    // TODO Run model evaluation on a separate validation dataset?
     println("Running cross-validation")
     val cvModel = cv.fit(trainingDF)
 
