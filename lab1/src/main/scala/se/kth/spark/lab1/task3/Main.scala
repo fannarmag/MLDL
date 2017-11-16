@@ -22,7 +22,7 @@ object Main {
 
     import sqlContext.implicits._
 
-    val filePath = "src/main/resources/millionsong-500k.txt"
+    val filePath = "src/main/resources/millionsong-500k-noquotes.txt"
 
     // first we need to read the data into RDD to be able to split the file 80/20 (training/testing)
     val RDD = sc.textFile(filePath)
@@ -41,8 +41,8 @@ object Main {
     val myLR = new LinearRegression()
       .setLabelCol("label(yearShifted)")
       .setFeaturesCol("f3f")
-      .setMaxIter(50)
-      .setRegParam(0.9)
+      .setMaxIter(10)
+      .setRegParam(0.1)
       .setElasticNetParam(0.1)
     val pipelineStages = task2PipelineStages :+ myLR
     val lrStage = pipelineStages.length - 1
