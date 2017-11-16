@@ -36,7 +36,7 @@ object Main {
     val testingDF = testingRDD.toDF()
 
     println("Training set length: " + trainingDF.count())
-    printf("Testing set length: " + testingDF.count())
+    println("Testing set length: " + testingDF.count())
 
     val myLR = new LinearRegression()
       .setLabelCol("label(yearShifted)")
@@ -44,19 +44,17 @@ object Main {
       .setMaxIter(10)
       .setRegParam(0.1)
       .setElasticNetParam(0.1)
-    // TODO What is this?
-    //val lrStage = ???
     val pipelineStages = task2PipelineStages :+ myLR
+    val lrStage = pipelineStages.length - 1
     val pipeline = new Pipeline().setStages(pipelineStages)
     val pipelineModel: PipelineModel = pipeline.fit(trainingDF)
-    // TODO What is this?
-    //val lrModel = pipelineModel.stages(lrStage).asInstanceOf[LinearRegressionModel]
-
-    val modelProcessedDF = pipelineModel.transform(testingDF)
-    print("Task 3 predictions - modelProcessedDF:")
-    modelProcessedDF.show(10)
+    val lrModel = pipelineModel.stages(lrStage).asInstanceOf[LinearRegressionModel]
 
     //print rmse of our model
+
     //do prediction - print first k
+    val modelProcessedDF = pipelineModel.transform(testingDF)
+    println("Task 3 predictions - modelProcessedDF:")
+    modelProcessedDF.show(10)
   }
 }
