@@ -13,11 +13,17 @@ object VectorHelper {
   }
 
   def sum(v1: Vector, v2: Vector): Vector = {
-    ???
+    // Implement addition of two vectors
+    // Assuming vectors have the same dimensions (requirement)
+    val a1 = v1.toArray
+    val a2 = v2.toArray
+    val zipped = a1.zip(a2)
+    val summed = zipped.map(tup => tup._1 + tup._2)
+    Vectors.dense(summed)
   }
 
   def fill(size: Int, fillVal: Double): Vector = {
-    // create a vector of predefined size and initialize it with the predefined value
+    // Create a vector of predefined size and initialize it with the predefined value
     Vectors.dense(Array.fill[Double](size)(fillVal))
   }
 }
