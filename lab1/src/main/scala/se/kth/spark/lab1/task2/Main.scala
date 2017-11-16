@@ -72,6 +72,7 @@ object Main {
       .setIndices(Array(1, 2, 3))
 
     val processedDF6 = fSlicer.transform(processedDF5)
+    print("processedDF6:")
     processedDF6.show(10)
 
     //Step8: put everything together in a pipeline
@@ -82,6 +83,7 @@ object Main {
 
     //Step10: transform data with the model
     val modelProcessedDF = pipelineModel.transform(rawDF)
+    print("modelProcessedDF:")
     modelProcessedDF.show(10)
 
     //Step11: drop all columns from the dataframe other than label and features
