@@ -4,7 +4,11 @@ import org.apache.spark.ml.linalg.{Matrices, Vector, Vectors}
 
 object VectorHelper {
   def dot(v1: Vector, v2: Vector): Double = {
-    ???
+    var sum = 0.0
+    if (v1.size == v2.size) {
+      sum = v1.toArray.zip(v2.toArray).map({case(a, b) => a*b}).sum
+    }
+    sum
   }
 
   def dot(v: Vector, s: Double): Vector = {
