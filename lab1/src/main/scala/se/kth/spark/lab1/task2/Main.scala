@@ -1,7 +1,7 @@
 package se.kth.spark.lab1.task2
 
 import se.kth.spark.lab1._
-import org.apache.spark.ml.Pipeline
+import org.apache.spark.ml.{Pipeline, PipelineStage}
 import org.apache.spark.ml.linalg.Vector
 import org.apache.spark.SparkConf
 import org.apache.spark.SparkContext
@@ -11,7 +11,7 @@ import org.apache.spark.ml.linalg.{DenseVector, Vectors}
 import org.apache.spark.sql.functions.{min, udf}
 
 object Main {
-  def main(args: Array[String]) {
+  def main(args: Array[String]) : (SparkContext, SQLContext, Array[PipelineStage]) = {
     val conf = new SparkConf().setAppName("lab1").setMaster("local")
     val sc = new SparkContext(conf)
     val sqlContext = new SQLContext(sc)
@@ -89,5 +89,8 @@ object Main {
     //Step11: drop all columns from the dataframe other than label and features
     val modelProcessedDF2 = modelProcessedDF.drop("value").drop("tokenArray").drop("tokenVector").drop("year").drop("yearDouble")
     modelProcessedDF2.show(10)
+
+    // Let's return the pipeline operators for use in later tasks
+    (sc, sqlContext, Array(regexTokenizer, arr2Vect, lSlicer, v2d, lShifter, fSlicer))
   }
 }
