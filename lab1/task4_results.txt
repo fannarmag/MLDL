@@ -8,9 +8,20 @@ val paramGrid = new ParamGridBuilder()
 
 ------------------------------------------------------------------------------------
 
+Running on large dataset (500k):
+
 Running cross-validation
 Best LinearRegressionModel:
 RMSE: 10.495555900553294
 numIterations: 8
+maxIterations: 10
+regParam: 0.1
+
+Running on small dataset (millionsong.txt):
+
+Running cross-validation
+Best LinearRegressionModel:
+RMSE: 17.349299438396347
+numIterations: 9
 maxIterations: 10
 regParam: 0.1
