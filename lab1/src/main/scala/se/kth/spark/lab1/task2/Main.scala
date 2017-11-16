@@ -18,6 +18,7 @@ object Main {
 
     val filePath = "src/main/resources/millionsong-500k-noquotes.txt"
     val rawDF = sqlContext.read.text(filePath)
+    println("rawDF size:" + rawDF.collect().length)
     rawDF.show(10)
 
     //Step1: tokenize each row
