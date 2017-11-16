@@ -13,7 +13,13 @@ object Main {
 
     // Let's call task 3 as a function
     // Get the pipeline stages defined there, as well as the spark and SQL contexts
-    val (sc, sqlContext, task3PipelineStages, trainingDF, testingDF) = task3.Main.main(Array())
+    val (sc, sqlContext, task3PipelineStages) = task3.Main.main(Array())
+
+    // Running Cross-Validation for a number of features on a big dataset is very expensive
+    // Here we are using the small dataset for time reasons
+    // Normally we would use the big millionsong-500k-noquotes dataset
+    val filePath = "src/main/resources/millionsong.txt"
+    val rawDF = sqlContext.read.text(filePath)
 
     //create pipeline
     val pipeline = new Pipeline().setStages(task3PipelineStages)
@@ -36,9 +42,8 @@ object Main {
       .setEstimatorParamMaps(paramGrid)
 
     // Run cross-validation, and choose the best set of parameters.
-    // TODO Run model evaluation on a separate validation dataset?
     println("Running cross-validation")
-    val cvModel = cv.fit(trainingDF)
+    val cvModel = cv.fit(rawDF)
 
     val bestModel = cvModel
       .bestModel
