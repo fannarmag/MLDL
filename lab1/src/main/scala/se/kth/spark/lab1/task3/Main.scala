@@ -22,7 +22,7 @@ object Main {
 
     import sqlContext.implicits._
 
-    val filePath = "src/main/resources/millionsong.txt"
+    val filePath = "src/main/resources/millionsong-500k.txt"
 
     // first we need to read the data into RDD to be able to split the file 80/20 (training/testing)
     val RDD = sc.textFile(filePath)
