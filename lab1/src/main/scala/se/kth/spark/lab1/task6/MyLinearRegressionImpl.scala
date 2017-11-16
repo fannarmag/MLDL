@@ -24,7 +24,7 @@ object Helper {
   }
 
   def predictOne(weights: Vector, features: Vector): Double = {
-    ???
+    VectorHelper.dot(weights, features)
   }
 
   def predict(weights: Vector, data: RDD[Instance]): RDD[(Double, Double)] = {
