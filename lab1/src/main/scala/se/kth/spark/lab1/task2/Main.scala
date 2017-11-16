@@ -11,12 +11,13 @@ import org.apache.spark.ml.linalg.{DenseVector, Vectors}
 import org.apache.spark.sql.functions.{min, udf}
 
 object Main {
+  // TODO Main method must return void - have to refactor all the shit
   def main(args: Array[String]) : (SparkContext, SQLContext, Array[PipelineStage]) = {
     val conf = new SparkConf().setAppName("lab1").setMaster("local")
     val sc = new SparkContext(conf)
     val sqlContext = new SQLContext(sc)
 
-    val filePath = "src/main/resources/millionsong-500k-noquotes.txt"
+    val filePath = "src/main/resources/millionsong.txt"
     val rawDF = sqlContext.read.text(filePath)
     println("rawDF size:" + rawDF.collect().length)
     rawDF.show(10)

@@ -8,6 +8,7 @@ import org.apache.spark.sql.{DataFrame, SQLContext}
 import org.apache.spark.ml.regression.LinearRegressionModel
 
 object Main {
+  // TODO Main method must return void - have to refactor all the shit
   def main(args: Array[String]) : (SparkContext, SQLContext, Array[PipelineStage]) = {
 
     // Let's call task 2 as a function
@@ -16,7 +17,7 @@ object Main {
 
     import sqlContext.implicits._
 
-    val filePath = "src/main/resources/millionsong-500k-noquotes.txt"
+    val filePath = "src/main/resources/millionsong.txt"
 
     // first we need to read the data into RDD to be able to split the file 80/20 (training/testing)
     val RDD = sc.textFile(filePath)
