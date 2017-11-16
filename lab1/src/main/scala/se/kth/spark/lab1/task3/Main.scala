@@ -41,8 +41,8 @@ object Main {
     val myLR = new LinearRegression()
       .setLabelCol("label(yearShifted)")
       .setFeaturesCol("f3f")
-      .setMaxIter(10)
-      .setRegParam(0.1)
+      .setMaxIter(50)
+      .setRegParam(0.9)
       .setElasticNetParam(0.1)
     val pipelineStages = task2PipelineStages :+ myLR
     val lrStage = pipelineStages.length - 1
@@ -51,6 +51,8 @@ object Main {
     val lrModel = pipelineModel.stages(lrStage).asInstanceOf[LinearRegressionModel]
 
     //print rmse of our model
+    val lrTrainingSummary = lrModel.summary
+    println(s"RMSE: ${lrTrainingSummary.rootMeanSquaredError}")
 
     //do prediction - print first k
     val modelProcessedDF = pipelineModel.transform(testingDF)
