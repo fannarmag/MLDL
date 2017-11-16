@@ -18,7 +18,9 @@ case class Instance(label: Double, features: Vector)
 
 object Helper {
   def rmse(labelsAndPreds: RDD[(Double, Double)]): Double = {
-    ???
+    val numerator = labelsAndPreds.map({case(label, prediction) => math.pow(label - prediction, 2)}).sum()
+    val RMSE = math.sqrt(numerator / labelsAndPreds.count())
+    RMSE
   }
 
   def predictOne(weights: Vector, features: Vector): Double = {
