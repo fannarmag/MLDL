@@ -1,8 +1,9 @@
 package se.kth.spark.lab1.task5
 
 import org.apache.spark._
+import org.apache.spark.ml.evaluation.RegressionEvaluator
 import org.apache.spark.sql.{DataFrame, SQLContext}
-import org.apache.spark.ml.tuning.CrossValidatorModel
+import org.apache.spark.ml.tuning.{CrossValidator, CrossValidatorModel, ParamGridBuilder}
 import org.apache.spark.ml.regression.{LinearRegression, LinearRegressionModel}
 import org.apache.spark.ml.{Pipeline, PipelineModel}
 import org.apache.spark.ml.feature.PolynomialExpansion
@@ -10,18 +11,12 @@ import se.kth.spark.lab1.task2
 
 object Main {
   def main(args: Array[String]) {
-    //val conf = new SparkConf().setAppName("lab1").setMaster("local")
-    //val sc = new SparkContext(conf)
-    //val sqlContext = new SQLContext(sc)
 
     // Let's call task 2 as a function
     // Get the pipeline stages defined there, as well as the spark and SQL contexts
     val (sc, sqlContext, task2PipelineStages) = task2.Main.main(Array())
 
-    //import sqlContext.implicits._
-    //import sqlContext._
-
-    val filePath = "src/main/resources/millionsong-500k-noquotes.txt"
+    val filePath = "src/main/resources/millionsong.txt"
     val obsDF: DataFrame = sqlContext.read.text(filePath)
 
     // Create polynomial expansion transformer
@@ -39,19 +34,42 @@ object Main {
     val pipelineStages = task2PipelineStages ++ Array(polynomialExpansionTransformer, myLR)
 
     val pipeline = new Pipeline().setStages(pipelineStages)
-    val pipelineModel: PipelineModel = pipeline.fit(obsDF)
 
-    val lrStage = pipelineStages.length - 1
-    val lrModel = pipelineModel.stages(lrStage).asInstanceOf[LinearRegressionModel]
+    // Cross validator (duplicated from task 4)
 
-    val lrTrainingSummary = lrModel.summary
-    println("LinearRegressionTrainingSummary:")
-    println(s"RMSE: ${lrTrainingSummary.rootMeanSquaredError}")
-    println(s"numIterations: ${lrTrainingSummary.totalIterations}")
+    //build the parameter grid by setting the values for maxIter and regParam
+    // this grid will have 2 x 2 = 4 parameter settings for CrossValidator to choose from.
+    val lrStage: LinearRegression = pipelineStages(pipelineStages.length - 1).asInstanceOf[LinearRegression]
+    val paramGrid = new ParamGridBuilder()
+      // Three values above and three values below the base value
+      // Let's take the median of the values given in the assignment as the base values, 30 and 0.5
+      .addGrid(lrStage.maxIter, Array(10, 17, 23, 30, 37, 43, 50))
+      .addGrid(lrStage.regParam, Array(0.1, 0.25, 0.38, 0.5, 0.65, 0.8, 0.9))
+      .build()
 
-    //do prediction - print first k
-    val modelProcessedDF = pipelineModel.transform(obsDF)
-    println("Task 3 predictions - modelProcessedDF:")
-    modelProcessedDF.show(10)
+    val evaluator = new RegressionEvaluator()
+    //create the cross validator and set estimator, evaluator, paramGrid
+    val cv = new CrossValidator()
+      .setEstimator(pipeline)
+      .setEvaluator(evaluator)
+      .setEstimatorParamMaps(paramGrid)
+
+    // Run cross-validation, and choose the best set of parameters.
+    println("Running cross-validation")
+    val cvModel = cv.fit(obsDF)
+
+    val bestModel = cvModel
+      .bestModel
+      .asInstanceOf[PipelineModel]
+      .stages(pipelineStages.length - 1)
+      .asInstanceOf[LinearRegressionModel]
+    val bestModelSummary = bestModel.summary
+
+    //print best model RMSE to compare to previous
+    println("Best LinearRegressionModel:")
+    println(s"RMSE: ${bestModelSummary.rootMeanSquaredError}")
+    println(s"numIterations: ${bestModelSummary.totalIterations}")
+    println(s"maxIterations: ${bestModel.getMaxIter}")
+    println(s"regParam: ${bestModel.getRegParam}")
   }
 }
