@@ -61,7 +61,7 @@ object Main {
     val minYearValue = processedDF4.select(min("yearDouble")).collect()(0).getDouble(0)
     val lShifter = new DoubleUDF((y: Double) => { y - minYearValue })
       .setInputCol("yearDouble")
-      .setOutputCol("label(yearShifted)")
+      .setOutputCol("label")
 
     val processedDF5 = lShifter.transform(processedDF4)
     processedDF5.show(10)
@@ -69,7 +69,7 @@ object Main {
     //Step7: extract just the 3 first features in a new vector column
     val fSlicer = new VectorSlicer()
       .setInputCol("tokenVector")
-      .setOutputCol("f3f")
+      .setOutputCol("features")
       .setIndices(Array(1, 2, 3))
 
     val processedDF6 = fSlicer.transform(processedDF5)

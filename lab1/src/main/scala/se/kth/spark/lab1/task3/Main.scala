@@ -8,7 +8,7 @@ import org.apache.spark.sql.{DataFrame, SQLContext}
 import org.apache.spark.ml.regression.LinearRegressionModel
 
 object Main {
-  def main(args: Array[String]) : (SparkContext, SQLContext, Array[PipelineStage]) = {
+  def main(args: Array[String]) : (SparkContext, SQLContext, Array[PipelineStage], DataFrame, DataFrame) = {
 
     // Let's call task 2 as a function
     // Get the pipeline stages defined there, as well as the spark and SQL contexts
@@ -33,8 +33,8 @@ object Main {
     println("Testing set length: " + testingDF.count())
 
     val myLR = new LinearRegression()
-      .setLabelCol("label(yearShifted)")
-      .setFeaturesCol("f3f")
+      .setLabelCol("label")
+      .setFeaturesCol("features")
       .setMaxIter(50)
       .setRegParam(0.9)
       .setElasticNetParam(0.1)
@@ -55,7 +55,7 @@ object Main {
     println("Task 3 predictions - modelProcessedDF:")
     modelProcessedDF.show(10)
 
-    // Let's return the pipeline operators for use in later tasks
-    (sc, sqlContext, pipelineStages)
+    // Let's return the pipeline operators and datasets for use in later tasks
+    (sc, sqlContext, pipelineStages, trainingDF, testingDF)
   }
 }
