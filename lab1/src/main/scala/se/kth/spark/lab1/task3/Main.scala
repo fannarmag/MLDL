@@ -1,10 +1,10 @@
 package se.kth.spark.lab1.task3
 
 import org.apache.spark._
-import org.apache.spark.ml.regression.{LinearRegression, LinearRegressionModel}
-import org.apache.spark.ml.{Pipeline, PipelineModel, PipelineStage}
+import org.apache.spark.ml.regression.LinearRegression
+import org.apache.spark.ml.{Pipeline, PipelineModel}
 import se.kth.spark.lab1.task2
-import org.apache.spark.sql.{DataFrame, SQLContext}
+import org.apache.spark.sql.SQLContext
 import org.apache.spark.ml.regression.LinearRegressionModel
 
 object Main {

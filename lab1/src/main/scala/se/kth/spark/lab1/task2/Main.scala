@@ -1,14 +1,13 @@
 package se.kth.spark.lab1.task2
 
 import se.kth.spark.lab1._
-import org.apache.spark.ml.{Pipeline, PipelineStage}
+import org.apache.spark.ml.Pipeline
 import org.apache.spark.ml.linalg.Vector
 import org.apache.spark.SparkConf
 import org.apache.spark.SparkContext
-import org.apache.spark.sql.{Column, DataFrame, Row, SQLContext}
-import org.apache.spark.ml.feature.{RegexTokenizer, Tokenizer, VectorSlicer}
-import org.apache.spark.ml.linalg.{DenseVector, Vectors}
-import org.apache.spark.sql.functions.{min, udf}
+import org.apache.spark.sql.{DataFrame, SQLContext}
+import org.apache.spark.ml.feature.{RegexTokenizer, VectorSlicer}
+import org.apache.spark.sql.functions.min
 
 object Main {
   def main(args: Array[String]) {

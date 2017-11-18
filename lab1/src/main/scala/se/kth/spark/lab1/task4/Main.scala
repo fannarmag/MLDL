@@ -2,10 +2,10 @@ package se.kth.spark.lab1.task4
 
 import org.apache.spark._
 import org.apache.spark.ml.evaluation.RegressionEvaluator
-import org.apache.spark.sql.{DataFrame, SQLContext}
-import org.apache.spark.ml.tuning.{CrossValidator, CrossValidatorModel, ParamGridBuilder}
-import org.apache.spark.ml.regression.{LinearRegression, LinearRegressionModel}
-import org.apache.spark.ml.{Pipeline, PipelineModel, PipelineStage}
+import org.apache.spark.sql.SQLContext
+import org.apache.spark.ml.tuning.{CrossValidator, ParamGridBuilder}
+import org.apache.spark.ml.regression.LinearRegressionModel
+import org.apache.spark.ml.{Pipeline, PipelineModel}
 import se.kth.spark.lab1.task2
 import se.kth.spark.lab1.task3
 
