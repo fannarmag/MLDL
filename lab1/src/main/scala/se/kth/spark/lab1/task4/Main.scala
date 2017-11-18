@@ -22,7 +22,7 @@ object Main {
     val pipeline = new Pipeline().setStages(Array(myLR))
 
     //build the parameter grid by setting the values for maxIter and regParam
-    // this grid will have 2 x 2 = 4 parameter settings for CrossValidator to choose from.
+    // this grid will have 7 x 7 = 49 parameter settings for CrossValidator to choose from.
     val lrStage = myLR
     val paramGrid = new ParamGridBuilder()
       // Three values above and three values below the base value
