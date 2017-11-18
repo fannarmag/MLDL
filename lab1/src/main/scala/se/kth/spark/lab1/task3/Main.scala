@@ -50,8 +50,8 @@ object Main {
     new LinearRegression()
       .setLabelCol("label")
       .setFeaturesCol("features")
-      .setMaxIter(50)
-      .setRegParam(0.9)
+      .setMaxIter(10)
+      .setRegParam(0.1)
       .setElasticNetParam(0.1)
   }
 }
