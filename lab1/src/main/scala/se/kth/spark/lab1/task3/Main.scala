@@ -14,15 +14,13 @@ object Main {
     val sqlContext = new SQLContext(sc)
 
     // Get prepared data from task 2
-    val RDD = task2.Main.prepareData(sqlContext)
-    println("Total data set length: " + RDD.count())
+    val processedDF = task2.Main.prepareData(sqlContext)
+    println("Total data set length: " + processedDF.count())
 
     // Split data 80/20 (training/testing)
-    val splitRDDs = RDD.randomSplit(Array(0.8, 0.2), seed = 23)
-    val trainingRDD = splitRDDs(0) // 80% of the dataset
-    val trainingDF = trainingRDD.toDF()
-    val testingRDD = splitRDDs(1)  // 20% of the dataset
-    val testingDF = testingRDD.toDF()
+    val splitDFs = processedDF.randomSplit(Array(0.8, 0.2), seed = 23)
+    val trainingDF = splitDFs(0) // 80% of the dataset
+    val testingDF = splitDFs(1)  // 20% of the dataset
     println("Training set length: " + trainingDF.count())
     println("Testing set length: " + testingDF.count())
 
