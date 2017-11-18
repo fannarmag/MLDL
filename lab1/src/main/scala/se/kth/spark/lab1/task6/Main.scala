@@ -45,8 +45,8 @@ object Main {
     val lrModel = pipelineModel.stages(lrStage).asInstanceOf[MyLinearModelImpl]
 
     //print rmse of our model
-    //println("LinearRegressionTrainingSummary:")
-    //println(s"RMSE: ${lrModel.trainingError}")
+    println("LinearRegressionTrainingSummary:")
+    println(s"RMSE: ${lrModel.trainingError(lrModel.trainingError.length - 1)}")
 
     //do prediction - print first k
     val modelProcessedDF = pipelineModel.transform(testingDF)
