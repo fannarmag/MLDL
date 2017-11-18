@@ -41,11 +41,16 @@ class MyLinearRegressionImpl(override val uid: String)
   override def copy(extra: ParamMap): MyLinearRegressionImpl = defaultCopy(extra)
 
   def gradientSummand(weights: Vector, lp: Instance): Vector = {
-    ???
+    // (weights_i * features_j - label_j) * features_j
+    // TODO Does not work???
+    VectorHelper.dot(lp.features, VectorHelper.dot(weights, lp.features) - lp.label)
   }
 
   def gradient(d: RDD[Instance], weights: Vector): Vector = {
-    ???
+    // TODO Does not work
+    val summandsRDD = d.map(x => gradientSummand(weights, x))
+    val summandsSummedRDD = summandsRDD.map(x => x.toArray.sum)
+    Vectors.dense(summandsSummedRDD.collect())
   }
 
   def linregGradientDescent(trainData: RDD[Instance], numIters: Int): (Vector, Array[Double]) = {
