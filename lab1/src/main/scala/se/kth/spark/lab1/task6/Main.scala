@@ -11,34 +11,28 @@ import se.kth.spark.lab1.task2
 object Main {
   def main(args: Array[String]) {
 
-    // Note: Task 3 code duplicated here and changed
+   // Note: Task 3 code duplicated here and changed a bit
 
-    // Let's call task 2 as a function
-    // Get the pipeline stages defined there, as well as the spark and SQL contexts
-    val (sc, sqlContext, task2PipelineStages) = task2.Main.main(Array())
+    val conf = new SparkConf().setAppName("lab1").setMaster("local")
+    val sc = new SparkContext(conf)
+    val sqlContext = new SQLContext(sc)
 
-    import sqlContext.implicits._
-
-    val filePath = "src/main/resources/millionsong.txt"
-
-    // first we need to read the data into RDD to be able to split the file 80/20 (training/testing)
-    val RDD = sc.textFile(filePath)
+    // Get prepared data from task 2
+    val RDD = task2.Main.prepareData(sqlContext)
     println("Total data set length: " + RDD.count())
-    val splitRDDs = RDD.randomSplit(Array(0.8, 0.2), seed = 23)
 
+    // Split data 80/20 (training/testing)
+    val splitRDDs = RDD.randomSplit(Array(0.8, 0.2), seed = 23)
     val trainingRDD = splitRDDs(0) // 80% of the dataset
     val trainingDF = trainingRDD.toDF()
-
     val testingRDD = splitRDDs(1)  // 20% of the dataset
     val testingDF = testingRDD.toDF()
-
     println("Training set length: " + trainingDF.count())
     println("Testing set length: " + testingDF.count())
 
-    val myLR = new MyLinearRegressionImpl()
-      .setLabelCol("label")
-      .setFeaturesCol("features")
-    val pipelineStages = task2PipelineStages :+ myLR
+    // Create linear regression estimator pipeline and model
+    val myLR = getLinearRegression
+    val pipelineStages = Array(myLR)
     val lrStage = pipelineStages.length - 1
     val pipeline = new Pipeline().setStages(pipelineStages)
     val pipelineModel: PipelineModel = pipeline.fit(trainingDF)
@@ -52,5 +46,11 @@ object Main {
     val modelProcessedDF = pipelineModel.transform(testingDF)
     println("Task 6 predictions - modelProcessedDF:")
     modelProcessedDF.show(10)
+  }
+
+  def getLinearRegression : MyLinearRegressionImpl = {
+    new MyLinearRegressionImpl()
+      .setLabelCol("label")
+      .setFeaturesCol("features")
   }
 }

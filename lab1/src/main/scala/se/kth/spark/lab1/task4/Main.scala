@@ -6,27 +6,24 @@ import org.apache.spark.sql.{DataFrame, SQLContext}
 import org.apache.spark.ml.tuning.{CrossValidator, CrossValidatorModel, ParamGridBuilder}
 import org.apache.spark.ml.regression.{LinearRegression, LinearRegressionModel}
 import org.apache.spark.ml.{Pipeline, PipelineModel, PipelineStage}
+import se.kth.spark.lab1.task2
 import se.kth.spark.lab1.task3
 
 object Main {
   def main(args: Array[String]) {
+    val conf = new SparkConf().setAppName("lab1").setMaster("local")
+    val sc = new SparkContext(conf)
+    val sqlContext = new SQLContext(sc)
 
-    // Let's call task 3 as a function
-    // Get the pipeline stages defined there, as well as the spark and SQL contexts
-    val (sc, sqlContext, task3PipelineStages) = task3.Main.main(Array())
-
-    // Running Cross-Validation for a number of features on a big dataset is very expensive
-    // Here we are using the small dataset for time reasons
-    // Normally we would use the big millionsong-500k-noquotes dataset
-    val filePath = "src/main/resources/millionsong.txt"
-    val rawDF = sqlContext.read.text(filePath)
+    val dataFrame = task2.Main.prepareData(sqlContext)
+    val myLR = task3.Main.getLinearRegression
 
     //create pipeline
-    val pipeline = new Pipeline().setStages(task3PipelineStages)
+    val pipeline = new Pipeline().setStages(Array(myLR))
 
     //build the parameter grid by setting the values for maxIter and regParam
     // this grid will have 2 x 2 = 4 parameter settings for CrossValidator to choose from.
-    val lrStage: LinearRegression = task3PipelineStages(task3PipelineStages.length - 1).asInstanceOf[LinearRegression]
+    val lrStage = myLR
     val paramGrid = new ParamGridBuilder()
       // Three values above and three values below the base value
       // Let's take the median of the values given in the assignment as the base values, 30 and 0.5
@@ -43,12 +40,12 @@ object Main {
 
     // Run cross-validation, and choose the best set of parameters.
     println("Running cross-validation")
-    val cvModel = cv.fit(rawDF)
+    val cvModel = cv.fit(dataFrame)
 
     val bestModel = cvModel
       .bestModel
       .asInstanceOf[PipelineModel]
-      .stages(task3PipelineStages.length - 1)
+      .stages(0)
       .asInstanceOf[LinearRegressionModel]
     val bestModelSummary = bestModel.summary
 

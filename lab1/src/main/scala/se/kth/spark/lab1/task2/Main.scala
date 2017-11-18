@@ -5,17 +5,21 @@ import org.apache.spark.ml.{Pipeline, PipelineStage}
 import org.apache.spark.ml.linalg.Vector
 import org.apache.spark.SparkConf
 import org.apache.spark.SparkContext
-import org.apache.spark.sql.{Column, Row, SQLContext}
+import org.apache.spark.sql.{Column, DataFrame, Row, SQLContext}
 import org.apache.spark.ml.feature.{RegexTokenizer, Tokenizer, VectorSlicer}
 import org.apache.spark.ml.linalg.{DenseVector, Vectors}
 import org.apache.spark.sql.functions.{min, udf}
 
 object Main {
-  // TODO Main method must return void - have to refactor all the shit
-  def main(args: Array[String]) : (SparkContext, SQLContext, Array[PipelineStage]) = {
+  def main(args: Array[String]) {
     val conf = new SparkConf().setAppName("lab1").setMaster("local")
     val sc = new SparkContext(conf)
     val sqlContext = new SQLContext(sc)
+
+    val dataFrame = prepareData(sqlContext)
+  }
+
+  def prepareData(sqlContext : SQLContext) : DataFrame = {
 
     val filePath = "src/main/resources/millionsong.txt"
     val rawDF = sqlContext.read.text(filePath)
@@ -74,7 +78,7 @@ object Main {
       .setIndices(Array(1, 2, 3))
 
     val processedDF6 = fSlicer.transform(processedDF5)
-    print("processedDF6:")
+    println("processedDF6:")
     processedDF6.show(10)
 
     //Step8: put everything together in a pipeline
@@ -85,14 +89,14 @@ object Main {
 
     //Step10: transform data with the model
     val modelProcessedDF = pipelineModel.transform(rawDF)
-    print("modelProcessedDF:")
+    println("modelProcessedDF:")
     modelProcessedDF.show(10)
 
     //Step11: drop all columns from the dataframe other than label and features
-    val modelProcessedDF2 = modelProcessedDF.drop("value").drop("tokenArray").drop("tokenVector").drop("year").drop("yearDouble")
-    modelProcessedDF2.show(10)
+    val finalProcessedDF = modelProcessedDF.drop("value").drop("tokenArray").drop("tokenVector").drop("year").drop("yearDouble")
+    println("Final processed dataframe:")
+    finalProcessedDF.show(10)
 
-    // Let's return the pipeline operators for use in later tasks
-    (sc, sqlContext, Array(regexTokenizer, arr2Vect, lSlicer, v2d, lShifter, fSlicer))
+    finalProcessedDF
   }
 }

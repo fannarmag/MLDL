@@ -8,38 +8,27 @@ import org.apache.spark.sql.{DataFrame, SQLContext}
 import org.apache.spark.ml.regression.LinearRegressionModel
 
 object Main {
-  // TODO Main method must return void - have to refactor all the shit
-  def main(args: Array[String]) : (SparkContext, SQLContext, Array[PipelineStage]) = {
+  def main(args: Array[String]) {
+    val conf = new SparkConf().setAppName("lab1").setMaster("local")
+    val sc = new SparkContext(conf)
+    val sqlContext = new SQLContext(sc)
 
-    // Let's call task 2 as a function
-    // Get the pipeline stages defined there, as well as the spark and SQL contexts
-    val (sc, sqlContext, task2PipelineStages) = task2.Main.main(Array())
-
-    import sqlContext.implicits._
-
-    val filePath = "src/main/resources/millionsong.txt"
-
-    // first we need to read the data into RDD to be able to split the file 80/20 (training/testing)
-    val RDD = sc.textFile(filePath)
+    // Get prepared data from task 2
+    val RDD = task2.Main.prepareData(sqlContext)
     println("Total data set length: " + RDD.count())
-    val splitRDDs = RDD.randomSplit(Array(0.8, 0.2), seed = 23)
 
+    // Split data 80/20 (training/testing)
+    val splitRDDs = RDD.randomSplit(Array(0.8, 0.2), seed = 23)
     val trainingRDD = splitRDDs(0) // 80% of the dataset
     val trainingDF = trainingRDD.toDF()
-
     val testingRDD = splitRDDs(1)  // 20% of the dataset
     val testingDF = testingRDD.toDF()
-
     println("Training set length: " + trainingDF.count())
     println("Testing set length: " + testingDF.count())
 
-    val myLR = new LinearRegression()
-      .setLabelCol("label")
-      .setFeaturesCol("features")
-      .setMaxIter(50)
-      .setRegParam(0.9)
-      .setElasticNetParam(0.1)
-    val pipelineStages = task2PipelineStages :+ myLR
+    // Create linear regression estimator pipeline and model
+    val myLR = getLinearRegression
+    val pipelineStages = Array(myLR)
     val lrStage = pipelineStages.length - 1
     val pipeline = new Pipeline().setStages(pipelineStages)
     val pipelineModel: PipelineModel = pipeline.fit(trainingDF)
@@ -55,8 +44,14 @@ object Main {
     val modelProcessedDF = pipelineModel.transform(testingDF)
     println("Task 3 predictions - modelProcessedDF:")
     modelProcessedDF.show(10)
+  }
 
-    // Let's return the pipeline operators for use in later tasks
-    (sc, sqlContext, pipelineStages)
+  def getLinearRegression : LinearRegression = {
+    new LinearRegression()
+      .setLabelCol("label")
+      .setFeaturesCol("features")
+      .setMaxIter(50)
+      .setRegParam(0.9)
+      .setElasticNetParam(0.1)
   }
 }

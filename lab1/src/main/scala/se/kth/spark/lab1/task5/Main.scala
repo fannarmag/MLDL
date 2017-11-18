@@ -11,18 +11,16 @@ import se.kth.spark.lab1.task2
 
 object Main {
   def main(args: Array[String]) {
+    val conf = new SparkConf().setAppName("lab1").setMaster("local")
+    val sc = new SparkContext(conf)
+    val sqlContext = new SQLContext(sc)
 
-    // Let's call task 2 as a function
-    // Get the pipeline stages defined there, as well as the spark and SQL contexts
-    val (sc, sqlContext, task2PipelineStages) = task2.Main.main(Array())
-
-    val filePath = "src/main/resources/millionsong.txt"
-    val obsDF: DataFrame = sqlContext.read.text(filePath)
+    val obsDF = task2.Main.prepareData(sqlContext)
 
     // Create polynomial expansion transformer
     val polynomialExpansionTransformer = new PolynomialExpansion().setInputCol("features").setOutputCol("polyfeatures").setDegree(2)
 
-    // Create linear regression transformer to pipeline (duplicated from task 3)
+    // Create linear regression transformer (duplicated from task 3)
     val myLR = new LinearRegression()
       .setLabelCol("label")
       .setFeaturesCol("polyfeatures")
@@ -30,9 +28,7 @@ object Main {
       .setRegParam(0.1)
       .setElasticNetParam(0.1)
 
-    // Add transformers to pipeline stages array
-    val pipelineStages = task2PipelineStages ++ Array(polynomialExpansionTransformer, myLR)
-
+    val pipelineStages = Array(polynomialExpansionTransformer, myLR)
     val pipeline = new Pipeline().setStages(pipelineStages)
 
     // Cross validator (duplicated from task 4)
@@ -48,6 +44,7 @@ object Main {
       .build()
 
     val evaluator = new RegressionEvaluator()
+
     //create the cross validator and set estimator, evaluator, paramGrid
     val cv = new CrossValidator()
       .setEstimator(pipeline)
