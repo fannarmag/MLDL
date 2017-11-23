@@ -1,12 +1,10 @@
 ### Scalable Machine Learning and Deep Learning
 #### Lab 2 - Deep Learning with TensorFlow
 
-The getting started notebooks come with the Tensorflow Docker installation: 
-
+The getting started notebooks come with the Tensorflow Docker installation:  
 https://www.tensorflow.org/versions/r0.12/get_started/os_setup#docker_installation
 
-The template code for the lab comes from here:
-
+The template code for the lab comes from here:  
 https://github.com/id2223/ht17-lab2/blob/master/template.py
 
 To run the notebooks in a Docker container run:
