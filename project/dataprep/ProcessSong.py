@@ -24,21 +24,21 @@ def get_spectrogram_name(audio_file):
         .format(audio_file.tag.artist, audio_file.tag.title, get_genre(audio_file), ".png")
 
 
-def generate_spectrogram(filepath):
+def generate_spectrogram(file_path):
     current_path = os.path.dirname(os.path.realpath(__file__))
 
-    audio_file = eyed3.load(filepath)
+    audio_file = eyed3.load(file_path)
 
     # Generate a mono version of the song if needed
-    filepath_to_convert = filepath
+    file_path_to_convert = file_path
     mono_track_created = False
     if not is_mono(audio_file):
-        filepath_to_convert = generate_mono_version(filepath)
+        file_path_to_convert = generate_mono_version(file_path)
         mono_track_created = True
 
     output_file_path = os.path.join("spectrograms", get_spectrogram_name(audio_file))
     print("Generating spectrogram at: " + output_file_path)
-    command = "sox {} -n spectrogram -Y 200 -X {} -m -r -o {}".format(filepath_to_convert, 50, output_file_path)
+    command = "sox {} -n spectrogram -Y 200 -X {} -m -r -o {}".format(file_path_to_convert, 50, output_file_path)
     p = Popen(command, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True, cwd=current_path)
     output, errors = p.communicate()
     if errors:
@@ -46,8 +46,8 @@ def generate_spectrogram(filepath):
 
     if mono_track_created:
         # Remove temporary mono track
-        print("Removing temp mono track at: " + filepath_to_convert)
-        os.remove(filepath_to_convert)
+        print("Removing temp mono track at: " + file_path_to_convert)
+        os.remove(file_path_to_convert)
 
 
 def generate_mono_version(file_path):
