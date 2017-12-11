@@ -18,54 +18,71 @@ def get_genre(audio_file):
 
 def get_spectrogram_name(audio_file):
     return "{0!s}_{1!s}_{2!s}{3!s}"\
-        .format(audio_file.tag.artist, audio_file.tag.title, get_genre(audio_file), ".png")
+        .format(get_genre(audio_file), audio_file.tag.artist, audio_file.tag.title, ".png")
 
 
 def generate_spectrogram(file_path, output_folder_path):
     current_path = os.path.dirname(os.path.realpath(__file__))
 
-    audio_file = eyed3.load(file_path)
+    try:
+        audio_file = eyed3.load(file_path)
+    except OSError as ex:
+        print(ex)
+        print("Skipping: " + file_path)
+        return
 
-    print("Processing: " + audio_file.tag.artist + " - " + audio_file.tag.album + " - " + audio_file.tag.title)
+    audio_file_display_string = audio_file.tag.artist + " - " + audio_file.tag.album + " - " + audio_file.tag.title
+
+    print("Processing: " + audio_file_display_string)
 
     # Generate a mono version of the song if needed
     file_path_to_convert = file_path
     mono_track_created = False
     if not is_mono(audio_file):
-        file_path_to_convert = generate_mono_version(file_path)
-        mono_track_created = True
+        success, file_path_to_convert = generate_mono_version(file_path)
+        if success:
+            mono_track_created = True
+        else:
+            print("Skipping: " + audio_file_display_string)
+            return
 
     output_file_path = os.path.join(output_folder_path, get_spectrogram_name(audio_file))
     print("Generating spectrogram at: " + output_file_path)
-    command = "sox {} -n spectrogram -Y 200 -X {} -m -r -o {}".format(file_path_to_convert, 50, output_file_path)
+    command = "sox '{}' -n spectrogram -Y 200 -X {} -m -r -o '{}'".format(file_path_to_convert, 50, output_file_path)
     p = Popen(command, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True, cwd=current_path)
     output, errors = p.communicate()
+    if output:
+        print(str(output))
     if errors:
-        print(errors)
+        print(str(errors))
 
     if mono_track_created:
         # Remove temporary mono track
-        print("Removing temp mono track at: " + file_path_to_convert)
-        os.remove(file_path_to_convert)
+        if os.path.exists(file_path_to_convert):
+            print("Removing temp mono track at: " + file_path_to_convert)
+            os.remove(file_path_to_convert)
 
 
 def generate_mono_version(file_path):
     current_path = os.path.dirname(os.path.realpath(__file__))
 
     # Generate output file path
-    file_name = os.path.basename(file_path)
     dir_name = os.path.dirname(file_path)
-    generated_file_path = os.path.join(dir_name, "mono_" + file_name)
+    generated_file_path = os.path.join(dir_name, "mono_tmp.mp3")
 
     print("Generating mono file at: " + generated_file_path)
-    command = "sox {} {} remix 1,2".format(file_path, generated_file_path)
+    command = "sox '{}' '{}' remix 1,2".format(file_path, generated_file_path)
     p = Popen(command, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True, cwd=current_path)
     output, errors = p.communicate()
     if output:
-        print(output)
+        print(str(output))
+        # We are getting errors on stdout from sox. Hack around that here.
+        if "FAIL" in str(output) or "unexpected EOF" in str(output):
+            return False, ""
     if errors:
-        print(errors)
-    return generated_file_path
+        print(str(errors))
+        return False, ""
+    return True, generated_file_path
 
 
 if __name__ == "__main__":
@@ -77,6 +94,8 @@ if __name__ == "__main__":
     path = sys.argv[1]
     output_folder = sys.argv[2]
 
+    print("Processing songs/song under: " + path)
+
     if os.path.isfile(path):
         generate_spectrogram(path, output_folder)
     elif os.path.isdir(path):
@@ -84,6 +103,7 @@ if __name__ == "__main__":
         mp3s = glob(path + '/**/*.mp3', recursive=True)
         counter = 1
         for mp3path in mp3s:
+            print("")
             print("Processing mp3 " + str(counter) + " of " + str(len(mp3s)))
             generate_spectrogram(mp3path, output_folder)
             counter = counter + 1
