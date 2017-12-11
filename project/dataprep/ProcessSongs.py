@@ -82,7 +82,6 @@ if __name__ == "__main__":
     elif os.path.isdir(path):
         # See: https://stackoverflow.com/a/40755802
         mp3s = glob(path + '/**/*.mp3', recursive=True)
-        print("Number of mp3 files: " + str(len(mp3s)))
         counter = 1
         for mp3path in mp3s:
             print("Processing mp3 " + str(counter) + " of " + str(len(mp3s)))
