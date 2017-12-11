@@ -59,16 +59,20 @@ def generate_spectrogram(file_path, output_folder_path):
     if mono_track_created:
         # Remove temporary mono track
         if os.path.exists(file_path_to_convert):
-            print("Removing temp mono track at: " + file_path_to_convert)
-            os.remove(file_path_to_convert)
+            try:
+                print("Removing temp mono track at: " + file_path_to_convert)
+                os.remove(file_path_to_convert)
+            except OSError as ex:
+                print(ex)
 
 
 def generate_mono_version(file_path):
     current_path = os.path.dirname(os.path.realpath(__file__))
 
     # Generate output file path
+    file_name = os.path.basename(file_path)
     dir_name = os.path.dirname(file_path)
-    generated_file_path = os.path.join(dir_name, "mono_tmp.mp3")
+    generated_file_path = os.path.join(dir_name, "mono_" + file_name)
 
     print("Generating mono file at: " + generated_file_path)
     command = "sox '{}' '{}' remix 1,2".format(file_path, generated_file_path)
