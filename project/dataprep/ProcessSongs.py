@@ -28,7 +28,11 @@ def generate_spectrogram(file_path, output_folder_path):
         audio_file = eyed3.load(file_path)
     except OSError as ex:
         print(ex)
-        print("Skipping: " + file_path)
+        print("Skipping: " + file_path + " - could not load file")
+        return
+
+    if audio_file is None or audio_file.tag is None:
+        print("Skipping: " + file_path + " - file or tag is none")
         return
 
     audio_file_display_string = audio_file.tag.artist + " - " + audio_file.tag.album + " - " + audio_file.tag.title
