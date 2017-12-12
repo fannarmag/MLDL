@@ -28,7 +28,11 @@ def generate_spectrogram(file_path, output_folder_path):
         audio_file = eyed3.load(file_path)
     except OSError as ex:
         print(ex)
-        print("Skipping: " + file_path)
+        print("Skipping: " + file_path + " - could not load file")
+        return
+
+    if audio_file is None or audio_file.tag is None:
+        print("Skipping: " + file_path + " - file or tag is none")
         return
 
     audio_file_display_string = audio_file.tag.artist + " - " + audio_file.tag.album + " - " + audio_file.tag.title
@@ -59,16 +63,20 @@ def generate_spectrogram(file_path, output_folder_path):
     if mono_track_created:
         # Remove temporary mono track
         if os.path.exists(file_path_to_convert):
-            print("Removing temp mono track at: " + file_path_to_convert)
-            os.remove(file_path_to_convert)
+            try:
+                print("Removing temp mono track at: " + file_path_to_convert)
+                os.remove(file_path_to_convert)
+            except OSError as ex:
+                print(ex)
 
 
 def generate_mono_version(file_path):
     current_path = os.path.dirname(os.path.realpath(__file__))
 
     # Generate output file path
+    file_name = os.path.basename(file_path)
     dir_name = os.path.dirname(file_path)
-    generated_file_path = os.path.join(dir_name, "mono_tmp.mp3")
+    generated_file_path = os.path.join(dir_name, "mono_" + file_name)
 
     print("Generating mono file at: " + generated_file_path)
     command = "sox '{}' '{}' remix 1,2".format(file_path, generated_file_path)

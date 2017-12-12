@@ -15,8 +15,16 @@ def get_genre_stats(folder_path):
     print("Number of mp3 files: " + str(len(mp3s)))
     genre_dict = defaultdict(int)
     print("Collecting genre statistics")
+    counter = 0
+    hundred_counter = 1
     for mp3path in mp3s:
-        genre_dict[get_genre(mp3path)] = add(genre_dict[get_genre(mp3path)], 1)
+        counter = counter + 1
+        if counter == 100:
+            print("Processing file " + str(hundred_counter) + "00 of " + str(len(mp3s)))
+            hundred_counter = hundred_counter + 1
+            counter = 0
+        audio_file = eyed3.load(mp3path)
+        genre_dict[get_genre(audio_file)] = add(genre_dict[get_genre(audio_file)], 1)
     print_genre_dict(genre_dict)
 
 
@@ -26,9 +34,10 @@ def print_genre_dict(x):
         print(str(key) + ": " + str(value))
 
 
-def get_genre(file_path):
-    audio_file = eyed3.load(file_path)
-    if not audio_file.tag.genre:
+def get_genre(audio_file):
+    if not audio_file.tag:
+        return None
+    elif not audio_file.tag.genre:
         return None
     else:
         return audio_file.tag.genre.name
