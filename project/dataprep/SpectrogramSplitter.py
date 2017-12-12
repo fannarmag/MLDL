@@ -7,7 +7,25 @@ def split_spectrogram(file_path, output_folder):
     file_name = os.path.basename(file_path)
     file_name_split = file_name.split("_")
     genre = file_name_split[0]
-    print(genre)
+    success, full_output_folder = create_genre_folder(output_folder, genre)
+    if not success:
+        print("Could not create output folder, skipping file: " + file_path)
+        return
+
+
+def create_genre_folder(output_folder, genre):
+    full_folder_path = os.path.join(output_folder, genre + "/")
+    if not os.path.exists(os.path.dirname(full_folder_path)):
+        try:
+            print("Creating folder: " + full_folder_path)
+            os.makedirs(os.path.dirname(full_folder_path))
+            return True, full_folder_path
+        except OSError as exc:
+            print(exc)
+            print("Could not create folder: " + full_folder_path)
+            return False, full_folder_path
+    else:
+        return True, full_folder_path
 
 
 if __name__ == "__main__":
