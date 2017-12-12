@@ -31,8 +31,8 @@ def generate_spectrogram(file_path, output_folder_path):
         print("Skipping: " + file_path + " - could not load file")
         return
 
-    if audio_file is None or audio_file.tag is None:
-        print("Skipping: " + file_path + " - file or tag is none")
+    if audio_file is None or audio_file.tag is None or audio_file.info is None:
+        print("Skipping: " + file_path + " - file, tag or info is none")
         return
 
     audio_file_display_string = audio_file.tag.artist + " - " + audio_file.tag.album + " - " + audio_file.tag.title
