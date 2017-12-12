@@ -10,12 +10,19 @@ genre = filename.split("_")[0]
 print(genre, im.size)
 # img.show()
 
-#image_contents = tf.read_file("spectrograms/Cobalt_Gin_Metal.png")
-#decoded_image = tf.image.decode_png(image_contents, channels=1, dtype=tf.uint8)
-#print(decoded_image.shape)
-#resized_image = tf.image.resize_images(decoded_image, [129, 129])
-#print(resized_image.shape)
-#print(resized_image)
+label_dict = {
+    'Classical': 0,
+    'Electronic': 1,
+    'Grindcore': 2,
+    'HipHop': 3,
+    'Metal': 4,
+    'Rock': 5
+}
 
-
-
+# if we can't extract the label from the image we should not train on it
+if genre in label_dict:
+    value = label_dict.get(genre)
+    print(str(genre) + " - " + str(value))
+    ohv = tf.one_hot(value, label_dict.__len__())
+    with tf.Session():
+        print(ohv.eval())
