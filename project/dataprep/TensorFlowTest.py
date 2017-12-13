@@ -1,6 +1,15 @@
 import tensorflow as tf
 from PIL import Image  # from Pillow
 
+label_dict = {
+    'Classical': 0,
+    'Electronic': 1,
+    'Pop': 2,
+    'HipHop': 3,
+    'Metal': 4,
+    'Rock': 5
+}
+
 # Just a small test file to play around with tensorflow locally on our dataset
 
 im = Image.open("spectrograms/Metal_Cobalt_Gin.png")
@@ -9,15 +18,6 @@ filename = im.filename.split("/")[len(im.filename.split("/")) - 1]
 genre = filename.split("_")[0]
 print(genre, im.size)
 # img.show()
-
-label_dict = {
-    'Classical': 0,
-    'Electronic': 1,
-    'Grindcore': 2,
-    'HipHop': 3,
-    'Metal': 4,
-    'Rock': 5
-}
 
 # if we can't extract the label from the image we should not train on it
 if genre in label_dict:
