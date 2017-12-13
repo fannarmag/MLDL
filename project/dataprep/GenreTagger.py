@@ -11,13 +11,15 @@ def tag_with_genre(folder_path, genre):
     mp3s = glob(folder_path + '/**/*.mp3', recursive=True)
     counter = 1
     for mp3_file_path in mp3s:
-        print("Tagging file {} of {}".format(counter, str(len(mp3s))))
+        print("Tagging file {} of {} - {}".format(counter, str(len(mp3s)), mp3_file_path))
         tag_song_with_genre(mp3_file_path, genre)
         counter = counter + 1
 
 
 def tag_song_with_genre(file_path, genre):
     audiofile = eyed3.load(file_path)
+    if audiofile.tag is None:
+        audiofile.initTag()
     audiofile.tag.genre = genre
     audiofile.tag.save()
 
