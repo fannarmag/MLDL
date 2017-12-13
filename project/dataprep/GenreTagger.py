@@ -13,6 +13,7 @@ def tag_with_genre(folder_path, genre):
     for mp3_file_path in mp3s:
         print("Tagging file {} of {}".format(counter, str(len(mp3s))))
         tag_song_with_genre(mp3_file_path, genre)
+        counter = counter + 1
 
 
 def tag_song_with_genre(file_path, genre):
