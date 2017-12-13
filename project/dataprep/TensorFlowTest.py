@@ -1,4 +1,5 @@
 import tensorflow as tf
+import numpy as np
 from PIL import Image  # from Pillow
 
 label_dict = {
@@ -26,3 +27,26 @@ if genre in label_dict:
     ohv = tf.one_hot(value, label_dict.__len__())
     with tf.Session():
         print(ohv.eval())
+
+num_input = 128*128*1
+
+img = im.resize((128, 128), resample=Image.ANTIALIAS)
+imgData = np.asarray(img, dtype=np.uint8).reshape(128, 128, 1)
+imgData = imgData / 255 - 0.5
+
+print(imgData)
+
+
+#with open("spectrograms/Metal_Cobalt_Gin.png", "rb") as imageFile:
+#  f = imageFile.read()
+#  b = bytearray(f)
+
+#image = tf.decode_raw(b, tf.uint8)
+#image.set_shape([num_input])
+#image = tf.reshape(image, [128, 128, 1], tf.float32)
+
+# Normalize the values of the image from the range [0, 255] to [-0.5, 0.5]
+#image = tf.cast(image, tf.float32) / 255 - 0.5
+
+# print(image[0])
+
