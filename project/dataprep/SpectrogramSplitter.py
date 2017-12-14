@@ -36,13 +36,18 @@ def split_spectrogram(file_path, output_folder):
 
 
 def get_split_file_name(spectrogram_name, number):
-    # The spectrogram image names are of the form genre_artist_title.png
-    # Return a new name of the form genre_artist_title_number.png
+    # The spectrogram image names are of the form genre_artist_title.png OR genre_number.png
+    # Return a new name of the form genre_artist_title_number.png OR genre_number_number.png
     # Genre, artist and title together with the number should form a unique name for the split file
     # If there are two instances of the same song by the same artist we do not care.
     # Remove file extension and split by underscore
     name_split = os.path.splitext(spectrogram_name)[0].split("_")
-    return "{}_{}_{}_{}.png".format(name_split[0], name_split[1], name_split[2], number)
+    if len(name_split) == 3:
+        # name is of the form genre_artist_title.png
+        return "{}_{}_{}_{}.png".format(name_split[0], name_split[1], name_split[2], number)
+    elif len(name_split) == 2:
+        # name is of the form genre_number.png
+        return "{}_{}_{}.png".format(name_split[0], name_split[1], number)
 
 
 def create_genre_folder(output_folder, genre):
@@ -78,7 +83,6 @@ if __name__ == "__main__":
         spectrograms = glob(path + '/**/*.png', recursive=True)
         counter = 1
         for spectrogram_path in spectrograms:
-            print("")
             print("Processing spectrogram " + str(counter) + " of " + str(len(spectrograms))
                   + " - " + os.path.basename(spectrogram_path))
             split_spectrogram(spectrogram_path, output_folder)
