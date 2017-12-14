@@ -83,7 +83,6 @@ if __name__ == "__main__":
         spectrograms = glob(path + '/**/*.png', recursive=True)
         counter = 1
         for spectrogram_path in spectrograms:
-            print("")
             print("Processing spectrogram " + str(counter) + " of " + str(len(spectrograms))
                   + " - " + os.path.basename(spectrogram_path))
             split_spectrogram(spectrogram_path, output_folder)
