@@ -5,7 +5,7 @@ from collections import defaultdict
 
 
 # Rename all pngs within the folder (recursive)
-# The spectrogram png names are of the form genre_artist_title.png OR genre_number.png (already renamed files)
+# The spectrogram png names should be of the form genre_artist_title.png
 # Rename all of them to genre_number.png, where the number is the number of the song within that genre
 def rename_spectrograms(folder_path):
     print("Renaming all pngs under {}".format(folder_path))
@@ -37,7 +37,6 @@ def rename_spectrograms_of_genre(png_paths):
 
 def rename_file_with_number(file_path, number):
     # The spectrogram png names are of the form genre_artist_title.png
-    # OR genre_number.png
     file_name = os.path.basename(file_path)
     file_dir = os.path.dirname(file_path)
     name_split = os.path.splitext(file_name)[0].split("_")
