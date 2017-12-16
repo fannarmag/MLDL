@@ -1,6 +1,5 @@
 import tensorflow as tf
-from tensorflow.contrib.data import Dataset, Iterator
-import numpy as np
+#from tensorflow.contrib.data import Dataset, Iterator
 import matplotlib.pyplot as plt
 import glob
 import random
@@ -33,6 +32,22 @@ def load_and_shuffle_data():
     return tf.constant(image_paths), tf.constant(labels)
 
 
+# Validate our data, plot first element
+def validate_data(data_set):
+    # Create TensorFlow Iterator object
+    iterator = tf.data.Iterator.from_structure(data_set.output_types, data_set.output_shapes)
+    next_element = iterator.get_next()
+    training_init_op = iterator.make_initializer(data_set)
+    with tf.Session() as sess:
+        # Initialize the iterator on the data
+        sess.run(training_init_op)
+        elem = sess.run(next_element)
+        print("label:" + str(elem[1]))
+        two_d_image = elem[0].reshape(128, 128)
+        plt.imshow(two_d_image, cmap='Greys')
+        plt.show()
+
+
 if __name__ == "__main__":
 
     # Our music genre labels
@@ -49,25 +64,11 @@ if __name__ == "__main__":
     images, labels = load_and_shuffle_data()
 
     # create TensorFlow Dataset objects
-    tf_data = tf.data.Dataset.from_tensor_slices((images, labels))
-    tf_data = tf_data.map(input_parser)
+    tf_data_set = tf.data.Dataset.from_tensor_slices((images, labels))
+    tf_data_set = tf_data_set.map(input_parser)
 
-    # validate our data, plot first element
-    # create TensorFlow Iterator object
-    iterator = Iterator.from_structure(tf_data.output_types,
-                                       tf_data.output_shapes)
-    next_element = iterator.get_next()
+    validate_data(tf_data_set)
 
-    # create two initialization ops to switch between the datasets
-    training_init_op = iterator.make_initializer(tf_data)
 
-    with tf.Session() as sess:
-        # initialize the iterator on the data
-        sess.run(training_init_op)
-        elem = sess.run(next_element)
-        print("label:" + str(elem[1]))
-        two_d_image = elem[0].reshape(128, 128)
-        plt.imshow(two_d_image, cmap='Greys')
-        plt.show()
 
 
