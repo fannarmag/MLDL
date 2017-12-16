@@ -13,9 +13,9 @@ def input_parser(img_path, label_value):
     return img_decoded, label
 
 
-def load_and_shuffle_data():
+def load_and_shuffle_data(data_folder):
     data = []
-    for file in glob.glob("data/*.png"):
+    for file in glob.glob("data/" + data_folder + "/*/**.png"):
         # extract label
         filename = file.split("/")[len(file.split("/")) - 1]
         genre = filename.split("_")[0]
@@ -100,7 +100,7 @@ if __name__ == "__main__":
 
     n_classes = len(label_dict)
     learning_rate = 0.001
-    num_steps = 4 # Size of data set
+    num_steps = 6000 # Size of data set
     batch_size = 128
     display_step = 100
     # Network Parameters
@@ -108,16 +108,20 @@ if __name__ == "__main__":
     #n_classes = 10  # MNIST total classes (0-9 digits)
     dropout = 0.75  # Dropout, probability to keep units
 
-    images, labels = load_and_shuffle_data()
+    # Load train data
+    images_train, labels_train = load_and_shuffle_data("train")
+    tf_data_set_train = tf.data.Dataset.from_tensor_slices((images_train, labels_train))
+    tf_data_set_train = tf_data_set_train.map(input_parser)
 
-    # create TensorFlow Dataset objects
-    tf_data_set = tf.data.Dataset.from_tensor_slices((images, labels))
-    tf_data_set = tf_data_set.map(input_parser)
+    # Load test data
+    images_test, labels_test = load_and_shuffle_data("test")
+    tf_data_set_test = tf.data.Dataset.from_tensor_slices((images_test, labels_test))
+    tf_data_set_test = tf_data_set_test.map(input_parser)
 
     # validate_data(tf_data_set)
 
     # Set up batching
-    batch_data_set = tf_data_set.batch(1)
+    batch_data_set = tf_data_set_train.batch(100)
     #iterator = batch_data_set.make_one_shot_iterator()
     #iterator = batch_data_set.make_initializable_iterator()
     # Reinitializable iterator
