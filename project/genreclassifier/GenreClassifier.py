@@ -132,35 +132,35 @@ if __name__ == "__main__":
     dropout = 0.75  # Dropout, probability to keep units
 
     # Load train data
-    images_train, labels_train = load_and_shuffle_data("train")
+    images_train, labels_train = load_and_shuffle_data("training")
     tf_data_set_train = tf.data.Dataset.from_tensor_slices((images_train, labels_train))
     tf_data_set_train = tf_data_set_train.map(input_parser)
 
-    # Load test data
-    #images_test, labels_test = load_and_shuffle_data("test")
-    #tf_data_set_test = tf.data.Dataset.from_tensor_slices((images_test, labels_test))
-    #tf_data_set_test = tf_data_set_test.map(input_parser)
+    # Load validation data
+    images_validation, labels_validation = load_and_shuffle_data("validation")
+    tf_data_set_validation = tf.data.Dataset.from_tensor_slices((images_validation, labels_validation))
+    tf_data_set_validation = tf_data_set_validation.map(input_parser)
 
     # Uncomment to check out the data we are working on
-    # validate_data(tf_data_set)
+    #validate_data(tf_data_set_validation)
 
     # Set up batching for data sets
     batch_train_data_set = tf_data_set_train.batch(batch_size)
-    #batch_test_data_set = tf_data_set_test.batch(batch_size)
+    batch_validation_data_set = tf_data_set_validation.batch(batch_size)
 
     # Iterators (reinitializable)
     train_iterator = tf.data.Iterator.from_structure(batch_train_data_set.output_types, batch_train_data_set.output_shapes)
     training_iterator_init_op = train_iterator.make_initializer(batch_train_data_set)
-    #test_iterator = tf.data.Iterator.from_structure(tf_data_set_test.output_types, tf_data_set_test.output_shapes)
-    #test_iterator_init_op = test_iterator.make_initializer(tf_data_set_test)
+    validation_iterator = tf.data.Iterator.from_structure(batch_validation_data_set.output_types, batch_validation_data_set.output_shapes)
+    validation_iterator_init_op = validation_iterator.make_initializer(batch_validation_data_set)
 
     # Initialize iterators
     sess.run(training_iterator_init_op)
-    #sess.run(test_iterator_init_op)
+    sess.run(validation_iterator_init_op)
 
     # images, labels
     X_train, Y_train = train_iterator.get_next()
-    #X_test, Y_test = test_iterator.get_next()
+    X_validation, Y_validation = validation_iterator.get_next()
 
     # Verify batching
     # with tf.Session() as sess:
@@ -170,7 +170,7 @@ if __name__ == "__main__":
     logits_train = conv_net2(X_train, n_classes, dropout, reuse=False, is_training=True)
     # Create another graph for testing that reuse the same weights, but has
     # different behavior for 'dropout' (not applied).
-    logits_test = conv_net2(X_train, n_classes, dropout, reuse=True, is_training=False)
+    logits_validation = conv_net2(X_validation, n_classes, dropout, reuse=True, is_training=False)
 
     # Define loss and optimizer (with train logits, for dropout to take effect)
     loss_op = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=logits_train, labels=Y_train))
@@ -178,7 +178,7 @@ if __name__ == "__main__":
     train_op = optimizer.minimize(loss_op)
 
     # Evaluate model (with test logits, for dropout to be disabled)
-    correct_pred = tf.equal(tf.argmax(logits_test, 1), tf.argmax(Y_train, 1))
+    correct_pred = tf.equal(tf.argmax(logits_validation, 1), tf.argmax(Y_validation, 1))
     accuracy = tf.reduce_mean(tf.cast(correct_pred, tf.float32))
 
     # Initialize the variables (i.e. assign their default value)
@@ -188,28 +188,31 @@ if __name__ == "__main__":
     sess.run(init)
 
     # Training cycle
-    for step in range(1, num_steps + 1):
+    num_epochs = 20
+    for epoch in range(num_epochs):
+        print("Starting epoch {}".format(str(epoch)))
+        for step in range(1, num_steps + 1):
 
-        try:
-            sess.run(train_op)
-        except tf.errors.OutOfRangeError:
-            print("Reached end of data set in train op - reinitializing iterator")
-            #sess.run(training_iterator_init_op)
-            break
-
-        if step % display_step == 0 or step == 1:
-            # Calculate batch loss and accuracy
-            # (note that this consume a new batch of data)
             try:
-                loss, acc = sess.run([loss_op, accuracy])
-                print("Step " + str(step) + ", Minibatch Loss= " + \
-                      "{:.4f}".format(loss) + ", Training Accuracy= " + \
-                      "{:.3f}".format(acc))
+                sess.run(train_op)
             except tf.errors.OutOfRangeError:
-                print("Reached end of data set on loss step - reinitializing iterator")
-                #sess.run(training_iterator_init_op)
-                #sess.run(test_iterator_init_op)
+                print("Reached end of data set in train op - reinitializing iterator and starting next epoch")
+                sess.run(training_iterator_init_op)
                 break
+
+            if step % display_step == 0 or step == 1:
+                # Calculate batch loss and accuracy
+                # (note that this consume a new batch of data)
+                try:
+                    # loss, acc = sess.run([loss_op, accuracy])
+                    # print("Step " + str(step) + ", Minibatch Loss= " + \
+                    #      "{:.4f}".format(loss) + ", Training Accuracy= " + \
+                    #      "{:.3f}".format(acc))
+                    acc = sess.run([accuracy])
+                    print("Step " + str(step) + " Training Accuracy= " + "{}".format(acc))
+                except tf.errors.OutOfRangeError:
+                    print("Reached end of data set on loss step - reinitializing validation iterator")
+                    sess.run(validation_iterator_init_op)
 
     print("Optimization Finished!")
 
