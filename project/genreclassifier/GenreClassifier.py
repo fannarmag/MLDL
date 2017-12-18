@@ -3,7 +3,8 @@ import tensorflow as tf
 import matplotlib.pyplot as plt
 import glob
 import random
-import sys
+#from tensorflow.python.saved_model import builder as saved_model_builder
+#from tensorflow.python.saved_model import utils
 
 # See:
 # https://github.com/aymericdamien/TensorFlow-Examples/blob/master/examples/5_DataManagement/tensorflow_dataset_api.py
@@ -66,6 +67,27 @@ def conv_net(x, n_classes, dropout, reuse, is_training):
         out = tf.layers.dense(fc1, n_classes)
         # Because 'softmax_cross_entropy_with_logits' already apply softmax,
         # we only apply softmax to testing network
+        out = tf.nn.softmax(out) if not is_training else out
+
+    return out
+
+
+# Adapted from the medium guy
+def conv_net2(x, n_classes, dropout, reuse, is_training):
+    with tf.variable_scope('ConvNet', reuse=reuse):
+        x = tf.reshape(x, shape=[-1, 128, 128, 1])
+        conv = tf.layers.conv2d(x, 64, 2, activation=tf.nn.relu)
+        conv = tf.layers.max_pooling2d(conv, 2, 2)
+        conv = tf.layers.conv2d(conv, 128, 2, activation=tf.nn.relu)
+        conv = tf.layers.max_pooling2d(conv, 2, 2)
+        conv = tf.layers.conv2d(conv, 256, 2, activation=tf.nn.relu)
+        conv = tf.layers.max_pooling2d(conv, 2, 2)
+        conv = tf.layers.conv2d(conv, 512, 2, activation=tf.nn.relu)
+        conv = tf.layers.max_pooling2d(conv, 2, 2)
+        conv = tf.contrib.layers.flatten(conv)
+        conv = tf.layers.dense(conv, 1024)
+        conv = tf.layers.dropout(conv, rate=dropout, training=is_training)
+        out = tf.layers.dense(conv, n_classes)
         out = tf.nn.softmax(out) if not is_training else out
 
     return out
@@ -145,10 +167,10 @@ if __name__ == "__main__":
     #print (sess.run(Y_test))
 
     # Create a graph for training
-    logits_train = conv_net(X_train, n_classes, dropout, reuse=False, is_training=True)
+    logits_train = conv_net2(X_train, n_classes, dropout, reuse=False, is_training=True)
     # Create another graph for testing that reuse the same weights, but has
     # different behavior for 'dropout' (not applied).
-    logits_test = conv_net(X_train, n_classes, dropout, reuse=True, is_training=False)
+    logits_test = conv_net2(X_train, n_classes, dropout, reuse=True, is_training=False)
 
     # Define loss and optimizer (with train logits, for dropout to take effect)
     loss_op = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=logits_train, labels=Y_train))
@@ -173,7 +195,7 @@ if __name__ == "__main__":
         except tf.errors.OutOfRangeError:
             print("Reached end of data set in train op - reinitializing iterator")
             #sess.run(training_iterator_init_op)
-            sys.exit(0)
+            break
 
         if step % display_step == 0 or step == 1:
             # Calculate batch loss and accuracy
@@ -187,9 +209,20 @@ if __name__ == "__main__":
                 print("Reached end of data set on loss step - reinitializing iterator")
                 #sess.run(training_iterator_init_op)
                 #sess.run(test_iterator_init_op)
-                sys.exit(0)
+                break
 
     print("Optimization Finished!")
+
+    # Saving model
+    # https://github.com/llSourcell/How-to-Deploy-a-Tensorflow-Model-in-Production/blob/master/custom_model.py
+
+    # export_path = "/Users/tts/Development/school/MLDL/project/genreclassifier/export"
+    # print 'Exporting trained model to', export_path
+    # builder = saved_model_builder.SavedModelBuilder(export_path)
+    # classification_inputs = utils.build_tensor_info(serialized_tf_example)
+    # classification_outputs_classes = utils.build_tensor_info(prediction_classes)
+    # classification_outputs_scores = utils.build_tensor_info(values)
+
 
 
 
