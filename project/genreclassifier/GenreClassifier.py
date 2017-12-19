@@ -148,38 +148,47 @@ if __name__ == "__main__":
     batch_train_data_set = tf_data_set_train.batch(batch_size)
     batch_validation_data_set = tf_data_set_validation.batch(batch_size)
 
-    # Iterators (reinitializable)
-    train_iterator = tf.data.Iterator.from_structure(batch_train_data_set.output_types, batch_train_data_set.output_shapes)
-    training_iterator_init_op = train_iterator.make_initializer(batch_train_data_set)
-    validation_iterator = tf.data.Iterator.from_structure(batch_validation_data_set.output_types, batch_validation_data_set.output_shapes)
-    validation_iterator_init_op = validation_iterator.make_initializer(batch_validation_data_set)
-
-    # Initialize iterators
-    sess.run(training_iterator_init_op)
-    sess.run(validation_iterator_init_op)
-
-    # images, labels
-    X_train, Y_train = train_iterator.get_next()
-    X_validation, Y_validation = validation_iterator.get_next()
+    # Iterator (feedable and reinitializable)
+    # The train and validation data sets have the same shape, can use either one here
+    handle = tf.placeholder(tf.string, shape=[])
+    iterator = tf.data.Iterator.from_string_handle(
+        handle, batch_train_data_set.output_types, batch_train_data_set.output_shapes)
+    X, Y = iterator.get_next()  # images, labels
+    # Iterators for the different data sets
+    training_iterator = batch_train_data_set.make_initializable_iterator()
+    validation_iterator = batch_validation_data_set.make_initializable_iterator()
+    # Handles for the iterators
+    training_handle = sess.run(training_iterator.string_handle())
+    validation_handle = sess.run(validation_iterator.string_handle())
 
     # Verify batching
     # with tf.Session() as sess:
-    #print (sess.run(Y_test))
+    #   print (sess.run(Y))
 
     # Create a graph for training
-    logits_train = conv_net2(X_train, n_classes, dropout, reuse=False, is_training=True)
+    logits_train = conv_net2(X, n_classes, dropout, reuse=False, is_training=True)
     # Create another graph for testing that reuse the same weights, but has
     # different behavior for 'dropout' (not applied).
-    logits_validation = conv_net2(X_validation, n_classes, dropout, reuse=True, is_training=False)
+    logits_validation = conv_net2(X, n_classes, dropout, reuse=True, is_training=False)
 
     # Define loss and optimizer (with train logits, for dropout to take effect)
-    loss_op = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=logits_train, labels=Y_train))
+    with tf.name_scope('loss_op'):
+        loss_op = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=logits_train, labels=Y))
+    tf.summary.scalar('loss_op', loss_op)
+
+    # Optimizer and train operation
     optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate)
     train_op = optimizer.minimize(loss_op)
 
     # Evaluate model (with test logits, for dropout to be disabled)
-    correct_pred = tf.equal(tf.argmax(logits_validation, 1), tf.argmax(Y_validation, 1))
-    accuracy = tf.reduce_mean(tf.cast(correct_pred, tf.float32))
+    correct_pred = tf.equal(tf.argmax(logits_validation, 1), tf.argmax(Y, 1))
+    with tf.name_scope('accuracy'):
+        accuracy = tf.reduce_mean(tf.cast(correct_pred, tf.float32))
+    tf.summary.scalar('accuracy', accuracy)
+
+    # Summaries
+    merged_summaries = tf.summary.merge_all()
+    test_writer = tf.summary.FileWriter('/Users/tts/Development/school/MLDL/project/genreclassifier/summaries', sess.graph)
 
     # Initialize the variables (i.e. assign their default value)
     init = tf.global_variables_initializer()
@@ -187,33 +196,37 @@ if __name__ == "__main__":
     # Run the initializer
     sess.run(init)
 
-    # Training cycle
+    # Training loop
+    sess.run(training_iterator.initializer)
+    sess.run(validation_iterator.initializer)
     num_epochs = 20
     for epoch in range(num_epochs):
         print("Starting epoch {}".format(str(epoch)))
         for step in range(1, num_steps + 1):
 
+            # Training - use training iterator
             try:
-                sess.run(train_op)
+                sess.run(train_op, feed_dict={handle: training_handle})
             except tf.errors.OutOfRangeError:
                 print("Reached end of data set in train op - reinitializing iterator and starting next epoch")
-                sess.run(training_iterator_init_op)
+                sess.run(training_iterator.initializer)
                 break
 
+            # Validation - use validation iterator
             if step % display_step == 0 or step == 1:
-                # Calculate batch loss and accuracy
-                # (note that this consume a new batch of data)
+                # Calculate batch loss and accuracy (on the validation set)
+                # (note that this consume a new batch of data - from the validation set)
                 try:
-                    # loss, acc = sess.run([loss_op, accuracy])
-                    # print("Step " + str(step) + ", Minibatch Loss= " + \
-                    #      "{:.4f}".format(loss) + ", Training Accuracy= " + \
-                    #      "{:.3f}".format(acc))
-                    acc = sess.run([accuracy])
-                    print("Step " + str(step) + " Training Accuracy= " + "{}".format(acc))
+                    summary, loss, acc = sess.run([merged_summaries, loss_op, accuracy], feed_dict={handle: validation_handle})
+                    test_writer.add_summary(summary, step)
+                    print("Epoch " + str(epoch) + " - Step " + str(step)
+                          + ", Minibatch Loss= " + "{:.4f}".format(loss)
+                          + ", Training Accuracy= " + "{:.3f}".format(acc))
                 except tf.errors.OutOfRangeError:
                     print("Reached end of data set on loss step - reinitializing validation iterator")
-                    sess.run(validation_iterator_init_op)
+                    sess.run(validation_iterator.initializer)
 
+    test_writer.close()
     print("Optimization Finished!")
 
     # Saving model
