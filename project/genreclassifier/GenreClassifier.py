@@ -215,7 +215,8 @@ if __name__ == "__main__":
             # Validation - use validation iterator
             if step % display_step == 0 or step == 1:
                 # Calculate batch loss and accuracy (on the validation set)
-                # (note that this consume a new batch of data - from the validation set)
+                # (note that this consumes a new batch of data - from the validation set)
+                # (note that the loss op doesn't actually train the model)
                 try:
                     summary, loss, acc = sess.run([merged_summaries, loss_op, accuracy], feed_dict={handle: validation_handle})
                     test_writer.add_summary(summary, step)
