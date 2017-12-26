@@ -3,8 +3,12 @@ import tensorflow as tf
 import matplotlib.pyplot as plt
 import glob
 import random
-#from tensorflow.python.saved_model import builder as saved_model_builder
-#from tensorflow.python.saved_model import utils
+import sys
+from tensorflow.python.saved_model import builder as saved_model_builder
+from tensorflow.python.saved_model import tag_constants
+from tensorflow.python.saved_model import utils
+from tensorflow.python.saved_model import signature_constants
+from tensorflow.python.saved_model import signature_def_utils
 
 # See:
 # https://github.com/aymericdamien/TensorFlow-Examples/blob/master/examples/5_DataManagement/tensorflow_dataset_api.py
@@ -171,6 +175,12 @@ if __name__ == "__main__":
     # different behavior for 'dropout' (not applied).
     logits_validation = conv_net2(X, n_classes, dropout, reuse=True, is_training=False)
 
+    # Stuff needed to save the model
+    values, indices = tf.nn.top_k(logits_validation, n_classes)
+    table = tf.contrib.lookup.index_to_string_table_from_tensor(
+        tf.constant([str(i) for i in xrange(n_classes)]))
+    prediction_classes = table.lookup(tf.to_int64(indices))
+
     # Define loss and optimizer (with train logits, for dropout to take effect)
     with tf.name_scope('loss_op'):
         loss_op = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=logits_train, labels=Y))
@@ -230,15 +240,50 @@ if __name__ == "__main__":
     test_writer.close()
     print("Optimization Finished!")
 
+    sys.exit(0)
+
     # Saving model
     # https://github.com/llSourcell/How-to-Deploy-a-Tensorflow-Model-in-Production/blob/master/custom_model.py
+    # https://github.com/tensorflow/serving/blob/master/tensorflow_serving/example/mnist_saved_model.py
 
-    # export_path = "/Users/tts/Development/school/MLDL/project/genreclassifier/export"
-    # print 'Exporting trained model to', export_path
-    # builder = saved_model_builder.SavedModelBuilder(export_path)
-    # classification_inputs = utils.build_tensor_info(serialized_tf_example)
-    # classification_outputs_classes = utils.build_tensor_info(prediction_classes)
-    # classification_outputs_scores = utils.build_tensor_info(values)
+    export_path = "/Users/tts/Development/school/MLDL/project/genreclassifier/export"
+    print 'Exporting trained model to', export_path
+    builder = saved_model_builder.SavedModelBuilder(export_path)
+
+    classification_inputs = utils.build_tensor_info(X)
+    classification_outputs_classes = utils.build_tensor_info(prediction_classes)
+    classification_outputs_scores = utils.build_tensor_info(values)
+
+    classification_signature = signature_def_utils.build_signature_def(
+        inputs={signature_constants.CLASSIFY_INPUTS: classification_inputs},
+        outputs={
+            signature_constants.CLASSIFY_OUTPUT_CLASSES:
+                classification_outputs_classes,
+            signature_constants.CLASSIFY_OUTPUT_SCORES:
+                classification_outputs_scores
+        },
+        method_name=signature_constants.CLASSIFY_METHOD_NAME)
+
+    tensor_info_x = utils.build_tensor_info(X)
+    tensor_info_y = utils.build_tensor_info(Y)
+
+    prediction_signature = signature_def_utils.build_signature_def(
+        inputs={'images': tensor_info_x},
+        outputs={'scores': tensor_info_y},
+        method_name=signature_constants.PREDICT_METHOD_NAME)
+
+    legacy_init_op = tf.group(tf.tables_initializer(), name='legacy_init_op')
+    builder.add_meta_graph_and_variables(
+        sess, [tf.saved_model.tag_constants.SERVING],
+        signature_def_map={
+            'predict_images':
+                prediction_signature,
+            tf.saved_model.signature_constants.DEFAULT_SERVING_SIGNATURE_DEF_KEY:
+                classification_signature,
+        },
+        legacy_init_op=legacy_init_op)
+
+    builder.save()
 
 
 
