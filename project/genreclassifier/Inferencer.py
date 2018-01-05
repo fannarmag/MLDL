@@ -2,6 +2,11 @@ import tensorflow as tf
 import argparse
 from PIL import Image
 import numpy as np
+import os
+from glob import glob
+from collections import defaultdict
+from operator import add
+
 
 # Adapted from: https://blog.metaflow.fr/tensorflow-how-to-freeze-a-model-and-serve-it-with-a-python-api-d4f3596b3adc
 
@@ -26,6 +31,29 @@ def image_to_array(img_path):
     return img_decoded.reshape(-1, 128, 128, 1)
 
 
+def get_image_file_paths(folder_path):
+    paths = glob(folder_path + '/*.png')
+    return paths
+
+
+def get_genre_png(file_path):
+    file_name = os.path.basename(file_path)
+    # png file names are of the form genre_....png
+    genre = os.path.splitext(file_name)[0].split("_")[0]
+    return genre
+
+
+# https://stackoverflow.com/a/3787983
+def all_same(items):
+    return all(x == items[0] for x in items)
+
+
+def print_dictionary(name, dictionary):
+    print(name)
+    for key, value in dictionary.items():
+        print(str(key) + ": " + str(value))
+
+
 if __name__ == '__main__':
     # Let's allow the user to pass the filename as an argument
     parser = argparse.ArgumentParser()
@@ -39,9 +67,6 @@ if __name__ == '__main__':
     # We can verify that we can access the list of operations in the graph
     for op in graph.get_operations():
         print(op.name)
-        # prefix/Placeholder/inputs_placeholder
-        # ...
-        # prefix/Accuracy/predictions
 
     # We access the input and output nodes
     # x = graph.get_tensor_by_name('prefix/Placeholder/inputs_placeholder:0')
@@ -50,15 +75,49 @@ if __name__ == '__main__':
     y = graph.get_tensor_by_name('prefix/prediction:0')
     pkeep = graph.get_tensor_by_name('prefix/pkeep:0')
 
+    # NOTE: Model expects batches of 100. Can't do smaller batches, but can do a single image.
+    # Will also return 100 identical prediction values for each image.
+    # Just hacking around this by predicting each and every image.
+
+    label_dict = {
+        'Classical': 0,
+        'Techno': 1,
+        'Pop': 2,
+        'HipHop': 3,
+        'Metal': 4,
+        'Rock': 5
+    }
+
+    image_paths = get_image_file_paths("data/testing/Techno")
+    predictions = defaultdict(int)
 
     # We launch a Session
     with tf.Session(graph=graph) as sess:
-        # Note: we don't nee to initialize/restore anything
-        # There is no Variables in this graph, only hardcoded constants
-        y_out = sess.run(y, feed_dict={
-            x: image_to_array("data/testing/Pop/Pop_1_4.png"),
-            pkeep: 1
-        })
-        # I taught a neural net to recognise when a sum of numbers is bigger than 45
-        # it should return False in this case
-        print(y_out)  # [[ False ]] Yay, it works!
+
+        count = 1
+        for image_path in image_paths:
+
+            if count % 10 == 0 or count == 1:
+                print("Processing image {} of {}".format(count, len(image_paths)))
+
+            genre = get_genre_png(image_path)
+            label = label_dict.get(genre)
+
+            y_out = sess.run(y, feed_dict={
+                x: image_to_array(image_path),
+                pkeep: 1
+            })
+
+            # Since the model expects batches of 100 we get 100 identical values as the prediction (with pkeep=1)
+            # (The prediction tensor is of shape 100x6)
+
+            if not all_same(y_out):
+                print("WARNING - not all the predicted values are the same for {}".format(image_path))
+
+            predicted_label = y_out[0]
+            match = label == predicted_label
+            # print("{} - {} - Predicted: {} - Match: {}".format(label, genre, predicted_label, match))
+            predictions[predicted_label] = add(predictions[predicted_label], 1)
+            count = count + 1
+
+        print_dictionary("Predictions", predictions)
