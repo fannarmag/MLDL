@@ -187,8 +187,20 @@ if __name__ == "__main__":
     tf.summary.scalar('loss_op', loss_op)
 
     # Optimizer and train operation
+
+    # https://www.tensorflow.org/api_docs/python/tf/train/exponential_decay
+    global_step = tf.Variable(0, trainable=False)
+    starter_learning_rate = 0.005
+    # decay every 100 steps with a base of 0.96
+    decay_steps = 100
+    decay_rate = 0.96
+    # If the argument staircase is True, then global_step / decay_steps is an integer division
+    # and the decayed learning rate follows a staircase function.
+    learning_rate = tf.train.exponential_decay(starter_learning_rate, global_step, decay_steps, decay_rate,
+                                               staircase=True)
+    # Note: Passing global_step to minimize() will increment it at each step.
     optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate)
-    train_op = optimizer.minimize(loss_op)
+    train_op = optimizer.minimize(loss_op, global_step=global_step)
 
     # Evaluate model (with test logits, for dropout to be disabled)
     correct_pred = tf.equal(tf.argmax(logits_validation, 1), tf.argmax(Y, 1))
@@ -239,8 +251,6 @@ if __name__ == "__main__":
 
     test_writer.close()
     print("Optimization Finished!")
-
-    sys.exit(0)
 
     # Saving model
     # https://github.com/llSourcell/How-to-Deploy-a-Tensorflow-Model-in-Production/blob/master/custom_model.py
