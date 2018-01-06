@@ -82,7 +82,7 @@ if __name__ == "__main__":
         sys.exit(1)
 
     folder_path = sys.argv[1]
-    validation_ratio = 0.3
+    validation_ratio = 0.2
     testing_ratio = 0.1
 
     split_data(folder_path, validation_ratio, testing_ratio)
