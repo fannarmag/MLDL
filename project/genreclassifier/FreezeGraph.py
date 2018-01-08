@@ -77,7 +77,9 @@ def freeze_graph(model_dir, output_node_names):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument("--model_dir", type=str, default="tm_11000_learning_rate=0.0001.dropout=0.5", help="Model folder to export")
+    # "tm_11000_learning_rate=0.0001.dropout=0.5"
+    # "tm_11000_learning_rate=0.0005.dropout=0.25"
+    parser.add_argument("--model_dir", type=str, default="tm_11000_learning_rate=0.0005.dropout=0.25", help="Model folder to export")
 
     # TFOS model
     # parser.add_argument("--output_node_names", type=str, default="prediction", help="The name of the output nodes, comma separated.")

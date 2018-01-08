@@ -57,6 +57,7 @@ def print_dictionary(name, dictionary):
 if __name__ == '__main__':
 
     frozen_model_path = "tm_11000_learning_rate=0.0001.dropout=0.5/frozen_model.pb"
+    # frozen_model_path = "tm_11000_learning_rate=0.0005.dropout=0.25/frozen_model.pb"
 
     graph = load_graph(frozen_model_path)
 
