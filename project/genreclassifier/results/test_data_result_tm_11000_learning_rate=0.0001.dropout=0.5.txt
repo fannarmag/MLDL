@@ -1,0 +1,129 @@
+"tm_11000_learning_rate=0.0001.dropout=0.5/frozen_model.pb"
+
+Processing class folder: data/testing/Classical
+Processing image 1 of 1099
+Processing image 100 of 1099
+Processing image 200 of 1099
+Processing image 300 of 1099
+Processing image 400 of 1099
+Processing image 500 of 1099
+Processing image 600 of 1099
+Processing image 700 of 1099
+Processing image 800 of 1099
+Processing image 900 of 1099
+Processing image 1000 of 1099
+Predictions - data/testing/Classical
+0: 905
+1: 74
+2: 6
+3: 2
+4: 34
+5: 78
+Total: 1099 - Correct: 905 - Accuracy: 0.82347588717
+
+Processing class folder: data/testing/Techno
+Processing image 1 of 1099
+Processing image 100 of 1099
+Processing image 200 of 1099
+Processing image 300 of 1099
+Processing image 400 of 1099
+Processing image 500 of 1099
+Processing image 600 of 1099
+Processing image 700 of 1099
+Processing image 800 of 1099
+Processing image 900 of 1099
+Processing image 1000 of 1099
+Predictions - data/testing/Techno
+0: 7
+1: 1014
+2: 37
+3: 8
+4: 22
+5: 11
+Total: 1099 - Correct: 1014 - Accuracy: 0.922656960874
+
+Processing class folder: data/testing/Pop
+Processing image 1 of 1099
+Processing image 100 of 1099
+Processing image 200 of 1099
+Processing image 300 of 1099
+Processing image 400 of 1099
+Processing image 500 of 1099
+Processing image 600 of 1099
+Processing image 700 of 1099
+Processing image 800 of 1099
+Processing image 900 of 1099
+Processing image 1000 of 1099
+Predictions - data/testing/Pop
+0: 18
+1: 308
+2: 678
+3: 47
+4: 25
+5: 23
+Total: 1099 - Correct: 678 - Accuracy: 0.616924476797
+
+Processing class folder: data/testing/HipHop
+Processing image 1 of 1099
+Processing image 100 of 1099
+Processing image 200 of 1099
+Processing image 300 of 1099
+Processing image 400 of 1099
+Processing image 500 of 1099
+Processing image 600 of 1099
+Processing image 700 of 1099
+Processing image 800 of 1099
+Processing image 900 of 1099
+Processing image 1000 of 1099
+Predictions - data/testing/HipHop
+0: 2
+1: 402
+2: 145
+3: 498
+4: 29
+5: 23
+Total: 1099 - Correct: 498 - Accuracy: 0.45313921747
+
+Processing class folder: data/testing/Metal
+Processing image 1 of 1099
+Processing image 100 of 1099
+Processing image 200 of 1099
+Processing image 300 of 1099
+Processing image 400 of 1099
+Processing image 500 of 1099
+Processing image 600 of 1099
+Processing image 700 of 1099
+Processing image 800 of 1099
+Processing image 900 of 1099
+Processing image 1000 of 1099
+Predictions - data/testing/Metal
+0: 9
+1: 156
+2: 3
+3: 2
+4: 889
+5: 40
+Total: 1099 - Correct: 889 - Accuracy: 0.808917197452
+
+Processing class folder: data/testing/Rock
+Processing image 1 of 1099
+Processing image 100 of 1099
+Processing image 200 of 1099
+Processing image 300 of 1099
+Processing image 400 of 1099
+Processing image 500 of 1099
+Processing image 600 of 1099
+Processing image 700 of 1099
+Processing image 800 of 1099
+Processing image 900 of 1099
+Processing image 1000 of 1099
+Predictions - data/testing/Rock
+0: 22
+1: 234
+2: 58
+3: 35
+4: 174
+5: 576
+Total: 1099 - Correct: 576 - Accuracy: 0.524112829845
+
+Final result - Total: 6594 - Correct: 4560 - Accuracy: 0.691537761601
