@@ -1,3 +1,4 @@
+from __future__ import division
 import tensorflow as tf
 import argparse
 from PIL import Image
@@ -94,36 +95,65 @@ if __name__ == '__main__':
         'Rock': 5
     }
 
-    image_paths = get_image_file_paths("data/testing/HipHop")
-    predictions = defaultdict(int)
+    class_folders = [
+        "data/testing/Classical",
+        "data/testing/Techno",
+        "data/testing/Pop",
+        "data/testing/HipHop",
+        "data/testing/Metal",
+        "data/testing/Rock"
+    ]
 
     # We launch a Session
     with tf.Session(graph=graph) as sess:
 
-        count = 1
-        for image_path in image_paths:
+        total_predictions = 0
+        total_correct = 0
 
-            if count % 10 == 0 or count == 1:
-                print("Processing image {} of {}".format(count, len(image_paths)))
+        for class_folder in class_folders:
 
-            genre = get_genre_png(image_path)
-            label = label_dict.get(genre)
+            print("Processing class folder: {}".format(class_folder))
 
-            y_out = sess.run(y, feed_dict={
-                x: image_to_array(image_path),
-                #pkeep: 1   # TFOS model
-            })
+            class_predictions = 0
+            class_correct = 0
 
-            # Since the model expects batches of 100 we get 100 identical values as the prediction (with pkeep=1)
-            # (The prediction tensor is of shape 100x6)
+            image_paths = get_image_file_paths(class_folder)
+            predictions = defaultdict(int)
 
-            if not all_same(y_out):
-                print("WARNING - not all the predicted values are the same for {}".format(image_path))
+            count = 1
+            for image_path in image_paths:
 
-            predicted_label = y_out[0]
-            match = label == predicted_label
-            # print("{} - {} - Predicted: {} - Match: {}".format(label, genre, predicted_label, match))
-            predictions[predicted_label] = add(predictions[predicted_label], 1)
-            count = count + 1
+                if count % 100 == 0 or count == 1:
+                    print("Processing image {} of {}".format(count, len(image_paths)))
 
-        print_dictionary("Predictions", predictions)
+                genre = get_genre_png(image_path)
+                label = label_dict.get(genre)
+
+                y_out = sess.run(y, feed_dict={
+                    x: image_to_array(image_path),
+                    # pkeep: 1   # TFOS model
+                })
+
+                # Since the TFOS model expects batches of 100 we get 100 identical values as the prediction (with pkeep=1)
+                # (The prediction tensor is of shape 100x6)
+                if not all_same(y_out):
+                    print("WARNING - not all the predicted values are the same for {}".format(image_path))
+
+                predicted_label = y_out[0]
+                match = label == predicted_label
+                if match:
+                    class_correct = class_correct + 1
+                    total_correct = total_correct + 1
+                class_predictions = class_predictions + 1
+                total_predictions = total_predictions + 1
+                # print("{} - {} - Predicted: {} - Match: {}".format(label, genre, predicted_label, match))
+                predictions[predicted_label] = add(predictions[predicted_label], 1)
+                count = count + 1
+
+            print_dictionary("Predictions - {}".format(class_folder), predictions)
+            print("Total: {} - Correct: {} - Accuracy: {}\n"
+                  .format(str(class_predictions), str(class_correct), str(class_correct / class_predictions)))
+
+        print("Final result - Total: {} - Correct: {} - Accuracy: {}"
+              .format(str(total_predictions), str(total_correct), str(total_correct / total_predictions)))
+
