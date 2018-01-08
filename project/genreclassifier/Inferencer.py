@@ -57,7 +57,7 @@ def print_dictionary(name, dictionary):
 if __name__ == '__main__':
     # Let's allow the user to pass the filename as an argument
     parser = argparse.ArgumentParser()
-    parser.add_argument("--frozen_model_filename", default="trained_model_3/frozen_model.pb",
+    parser.add_argument("--frozen_model_filename", default="tm_11000_learning_rate=0.0001.dropout=0.5/frozen_model.pb",
                         type=str, help="Frozen model file to import")
     args = parser.parse_args()
 
@@ -69,11 +69,17 @@ if __name__ == '__main__':
         print(op.name)
 
     # We access the input and output nodes
-    # x = graph.get_tensor_by_name('prefix/Placeholder/inputs_placeholder:0')
-    x = graph.get_tensor_by_name('prefix/Reshape:0')
-    # y = graph.get_tensor_by_name('prefix/Accuracy/predictions:0')
-    y = graph.get_tensor_by_name('prefix/prediction:0')
-    pkeep = graph.get_tensor_by_name('prefix/pkeep:0')
+    # Note: We have two different graphs types, one from the TFOS model and one from the TF Estimator API
+
+    # Input
+    # x = graph.get_tensor_by_name('prefix/Reshape:0')    # TFOS model
+    x = graph.get_tensor_by_name('prefix/ConvNet_1/Reshape:0')  # Estimator model
+
+    # Output
+    # y = graph.get_tensor_by_name('prefix/prediction:0')    # TFOS model
+    # pkeep = graph.get_tensor_by_name('prefix/pkeep:0') # TFOS model
+    y = graph.get_tensor_by_name('prefix/ArgMax:0') # Estimator model
+
 
     # NOTE: Model expects batches of 100. Can't do smaller batches, but can do a single image.
     # Will also return 100 identical prediction values for each image.
@@ -88,7 +94,7 @@ if __name__ == '__main__':
         'Rock': 5
     }
 
-    image_paths = get_image_file_paths("data/testing/Techno")
+    image_paths = get_image_file_paths("data/testing/HipHop")
     predictions = defaultdict(int)
 
     # We launch a Session
@@ -105,7 +111,7 @@ if __name__ == '__main__':
 
             y_out = sess.run(y, feed_dict={
                 x: image_to_array(image_path),
-                pkeep: 1
+                #pkeep: 1   # TFOS model
             })
 
             # Since the model expects batches of 100 we get 100 identical values as the prediction (with pkeep=1)

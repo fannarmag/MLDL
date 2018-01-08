@@ -58,9 +58,13 @@ def freeze_graph(model_dir, output_node_names):
 
         # We use a built-in TF helper to export variables to constants
         output_graph_def = tf.graph_util.convert_variables_to_constants(
-            sess, # The session is used to retrieve the weights
-            tf.get_default_graph().as_graph_def(), # The graph_def is used to retrieve the nodes 
-            output_node_names.split(",") # The output node names are used to select the usefull nodes
+            sess,   # The session is used to retrieve the weights
+            tf.get_default_graph().as_graph_def(),  # The graph_def is used to retrieve the nodes
+            output_node_names.split(","),   # The output node names are used to select the usefull nodes
+            # Only for estimator API graph
+            # Have to black list the global step and global step variable initialization check,
+            # otherwise the inferencer doesn't work
+            variable_names_blacklist='IsVariableInitialized,global_step'
         ) 
 
         # Finally we serialize and dump the output graph to the filesystem
@@ -73,8 +77,13 @@ def freeze_graph(model_dir, output_node_names):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument("--model_dir", type=str, default="trained_model", help="Model folder to export")
-    parser.add_argument("--output_node_names", type=str, default="prediction", help="The name of the output nodes, comma separated.")
+    parser.add_argument("--model_dir", type=str, default="tm_11000_learning_rate=0.0001.dropout=0.5", help="Model folder to export")
+
+    # TFOS model
+    # parser.add_argument("--output_node_names", type=str, default="prediction", help="The name of the output nodes, comma separated.")
+    # Estimator model
+    parser.add_argument("--output_node_names", type=str, default="ArgMax", help="The name of the output nodes, comma separated.")
+
     args = parser.parse_args()
 
     freeze_graph(args.model_dir, args.output_node_names)
