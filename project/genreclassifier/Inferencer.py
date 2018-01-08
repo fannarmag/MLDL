@@ -1,6 +1,5 @@
 from __future__ import division
 import tensorflow as tf
-import argparse
 from PIL import Image
 import numpy as np
 import os
@@ -56,14 +55,10 @@ def print_dictionary(name, dictionary):
 
 
 if __name__ == '__main__':
-    # Let's allow the user to pass the filename as an argument
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--frozen_model_filename", default="tm_11000_learning_rate=0.0001.dropout=0.5/frozen_model.pb",
-                        type=str, help="Frozen model file to import")
-    args = parser.parse_args()
 
-    # We use our "load_graph" function
-    graph = load_graph(args.frozen_model_filename)
+    frozen_model_path = "tm_11000_learning_rate=0.0001.dropout=0.5/frozen_model.pb"
+
+    graph = load_graph(frozen_model_path)
 
     # We can verify that we can access the list of operations in the graph
     for op in graph.get_operations():
