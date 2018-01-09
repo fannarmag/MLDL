@@ -72,13 +72,14 @@ if __name__ == '__main__':
     frozen_model_path = "tm_11000_learning_rate=0.0001.dropout=0.5/frozen_model.pb"
     # frozen_model_path = "tm_11000_learning_rate=0.0005.dropout=0.25/frozen_model.pb"
 
-    mp3_path = "mp3s/01-dageneral-second_thought_(original_mix).mp3"
+    # mp3_path = "mp3s/01-dageneral-second_thought_(original_mix).mp3"
     # mp3_path = "mp3s/03 The Four Seasons, Op. 8, _Spring__ Allegro.mp3"
-    # mp3_path = "mp3s/04 Adagio for Strings.mp3"
+    mp3_path = "mp3s/04 Adagio for Strings.mp3"
     # mp3_path = "mp3s/Death - [The Sound Of Perseverance 1998] - 01 - Scavanger Of Human Sorrow.mp3"
     # mp3_path = "mp3s/Death - [Scream Bloody Gore 1987] - 02 - Zombie Ritual.mp3"
     # mp3_path = "mp3s/Queens Of The Stone Age - [Songs For The Deaf 2002] - 02 - No One Knows.mp3"
     # mp3_path = "mp3s/Common - [Be 2005] - 02 - The Corner.mp3"
+    # mp3_path = "mp3s/Nick Cave And The Bad Seeds - [The Boatmans Call 1997] - 01 - Into My Arms.mp3"
 
     spectrogram_output_folder = "mp3s/generated_spectrograms"
     spectrogram_splits_output_folder = "mp3s/generated_split_spectrograms"
@@ -181,8 +182,8 @@ if __name__ == '__main__':
             count = count + 1
 
         print_prediction_dictionary("\n{} - Predictions:".format(mp3_path), predictions, label_to_genre_mapping)
-        print("\nTotal: {} - Correct: {} - Accuracy: {}"
-              .format(str(total_predictions), str(total_correct), str(total_correct / total_predictions)))
+        # print("\nTotal: {} - Correct: {} - Accuracy: {}"
+        #      .format(str(total_predictions), str(total_correct), str(total_correct / total_predictions)))
         print("\nResult: {}".format(get_final_verdict(predictions, label_to_genre_mapping)))
 
         # Cleanup
